@@ -9,10 +9,14 @@ import javax.validation.constraints.Email;
  * TODO Sprint add-controllers.
  */
 @Data
-@AllArgsConstructor
 public class User {
     private int id;
-    private final String name;
+    private String name;
     @Email
-    private final String email;
+    private String email;
+
+    public User(String name, String email) {
+        this.name = name;
+        this.email = email;
+    }
 }

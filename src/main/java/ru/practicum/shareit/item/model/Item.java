@@ -9,12 +9,11 @@ import ru.practicum.shareit.user.User;
  * TODO Sprint add-controllers.
  */
 @Data
-@AllArgsConstructor
 public class Item {
     private int id;
     private final String name;
     private final String description;
-    private final boolean available;
+    private final Boolean available;
     private User owner;
     private ItemRequest request;
 }

@@ -11,6 +11,12 @@ import java.util.Objects;
 public class ExceptionHandler {
 
     @org.springframework.web.bind.annotation.ExceptionHandler
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ExceptionResponse handle(final ConflictException e) {
+        return new ExceptionResponse(e.getMessage());
+    }
+
+    @org.springframework.web.bind.annotation.ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ExceptionResponse handle(final ValidationException e) {
         return new ExceptionResponse(e.getMessage());

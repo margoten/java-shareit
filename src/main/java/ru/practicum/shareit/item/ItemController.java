@@ -4,12 +4,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.mapper.ItemMapper;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.service.ItemService;
-import ru.practicum.shareit.item.service.ItemServiceImpl;
-import ru.practicum.shareit.user.User;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * TODO Sprint add-controllers.
@@ -21,32 +21,39 @@ public class ItemController {
     private final ItemService itemService;
 
     @GetMapping()
-    public List<Item> getAllItems() {
-        return itemService.getItems();
+    public List<ItemDto> getAllItems() {
+        return itemService.getItems()
+                .stream()
+                .map(ItemMapper::toItemDto)
+                .collect(Collectors.toList());
     }
 
     @GetMapping("/search")
-    public List<Item> searchItems(@RequestParam(required = false) String text) {
-        return itemService.searchItems(text);
+    public List<ItemDto> searchItems(@RequestParam(required = false) String text) {
+        return itemService.searchItems(text)
+                .stream()
+                .map(ItemMapper::toItemDto)
+                .collect(Collectors.toList());
     }
 
     @PostMapping()
-    public Item createItem(@RequestBody ItemDto item, @RequestHeader("X-Sharer-User-Id") int userId) {
-        return null;
+    public ItemDto createItem(@RequestBody ItemDto item, @RequestHeader("X-Sharer-User-Id") Integer userId) {
+        return ItemMapper.toItemDto(itemService.createItem(ItemMapper.toItem(item), userId));
     }
 
     @PatchMapping("/{itemId}")
-    public Item updateItem(@RequestBody Item item, @RequestHeader("X-Sharer-User-Id") int userId) {
-        return itemService.updateItem(item);
+    public ItemDto updateItem(@RequestBody ItemDto item, @PathVariable int itemId, @RequestHeader("X-Sharer-User-Id") int userId) {
+        return null;
+        //return itemService.updateItem(item);
     }
 
     @GetMapping("/{itemId}")
-    public Item getItem(@PathVariable int itemId) {
-        return itemService.getItem(itemId);
+    public ItemDto getItem(@PathVariable int itemId) {
+        return ItemMapper.toItemDto(itemService.getItem(itemId));
     }
 
     @DeleteMapping("/{itemId}")
-    public Item deleteItem(@PathVariable int itemId) {
-        return itemService.deleteItem(itemId);
+    public void deleteItem(@PathVariable int itemId) {
+        itemService.deleteItem(itemId);
     }
 }

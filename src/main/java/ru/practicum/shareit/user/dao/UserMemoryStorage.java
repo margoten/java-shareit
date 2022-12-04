@@ -17,8 +17,14 @@ public class UserMemoryStorage implements UserStorage {
 
     @Override
     public User updateUser(User user) {
-        users.put(user.getId(), user);
-        return user;
+        User exist = users.get(user.getId());
+        if(user.getEmail() != null) {
+            exist.setEmail(user.getEmail());
+        }
+        if(user.getName() != null) {
+            exist.setName(user.getName());
+        }
+        return exist;
     }
 
     @Override

@@ -7,14 +7,14 @@ import java.util.List;
 import java.util.Optional;
 
 public interface ItemService {
-    Item createItem(Item item);
+    Item createItem(Item item, Integer userId);
 
-    Item updateItem(Item item);
+    Item updateItem(Item item, Integer userId);
 
 
     Item getItem(Integer id);
 
-    Item deleteItem(Integer id);
+    void deleteItem(Integer id);
 
     List<Item> getItems();
 

@@ -9,10 +9,8 @@ import java.util.*;
 @Component
 public class ItemMemoryStorage implements ItemStorage{
     private final Map<Integer, Item> items = new HashMap<>();
-    private Integer id;
     @Override
     public Item createItem(Item item) {
-        item.setId(generateId());
         items.put(item.getId(), item);
         return item;
     }
@@ -38,7 +36,4 @@ public class ItemMemoryStorage implements ItemStorage{
         return new ArrayList<>(items.values());
     }
 
-    private Integer generateId() {
-        return ++id;
-    }
 }
