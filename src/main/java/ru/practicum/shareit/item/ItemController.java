@@ -21,30 +21,31 @@ public class ItemController {
     private final ItemService itemService;
 
     @GetMapping()
-    public List<ItemDto> getAllItems() {
-        return itemService.getItems()
+    public List<ItemDto> getAllItems(@RequestHeader(required = false, value = "X-Sharer-User-Id") Integer userId) {
+        return itemService.getItems(userId)
                 .stream()
                 .map(ItemMapper::toItemDto)
                 .collect(Collectors.toList());
     }
 
     @GetMapping("/search")
-    public List<ItemDto> searchItems(@RequestParam(required = false) String text) {
-        return itemService.searchItems(text)
+    public List<ItemDto> searchItems(@RequestParam(required = false) String text, @RequestHeader(required = false, value = "X-Sharer-User-Id") Integer userId) {
+        return itemService.searchItems(text, userId)
                 .stream()
                 .map(ItemMapper::toItemDto)
                 .collect(Collectors.toList());
     }
 
     @PostMapping()
-    public ItemDto createItem(@RequestBody ItemDto item, @RequestHeader("X-Sharer-User-Id") Integer userId) {
-        return ItemMapper.toItemDto(itemService.createItem(ItemMapper.toItem(item), userId));
+    public ItemDto createItem(@RequestBody ItemDto itemDto, @RequestHeader(required = false, value = "X-Sharer-User-Id") Integer userId) {
+        return ItemMapper.toItemDto(itemService.createItem(ItemMapper.toItem(itemDto), userId));
     }
 
     @PatchMapping("/{itemId}")
-    public ItemDto updateItem(@RequestBody ItemDto item, @PathVariable int itemId, @RequestHeader("X-Sharer-User-Id") int userId) {
-        return null;
-        //return itemService.updateItem(item);
+    public ItemDto updateItem(@RequestBody ItemDto itemDto, @PathVariable int itemId, @RequestHeader(required = false, value = "X-Sharer-User-Id") Integer userId) {
+        Item item = ItemMapper.toItem(itemDto);
+        item.setId(itemId);
+        return ItemMapper.toItemDto(itemService.updateItem(item, userId));
     }
 
     @GetMapping("/{itemId}")

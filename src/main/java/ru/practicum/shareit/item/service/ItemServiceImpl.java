@@ -4,13 +4,14 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ru.practicum.shareit.exception.NotFoundException;
-import ru.practicum.shareit.exception.ValidationException;
+import ru.practicum.shareit.error.NotFoundException;
+import ru.practicum.shareit.error.ValidationException;
 import ru.practicum.shareit.item.dao.ItemStorage;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.service.UserService;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -23,18 +24,25 @@ public class ItemServiceImpl implements ItemService {
     private int idGenerator = 0;
 
     @Override
-    public Item createItem(Item item, Integer userId) {
+    public Item createItem(Item item, Integer ownerId) {
         validationItem(item);
-        User owner = userService.getUser(userId);
+        User owner = userService.getUser(ownerId);
         item.setOwner(owner);
         item.setId(generatedId());
         return itemStorage.createItem(item);
     }
 
     @Override
-    public Item updateItem(Item item, Integer userId) {
-
+    public Item updateItem(Item item, Integer ownerId) {
+        if (ownerId == null) {
+            throw new ValidationException("Не заполненное поле владельца");
+        }
+        Item exist = getItem(item.getId());
+        if (!exist.getOwner().getId().equals(ownerId)) {
+            throw new NotFoundException("У товара другой владелец");
+        }
         return itemStorage.updateItem(item);
+
     }
 
     @Override
@@ -50,15 +58,24 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public List<Item> getItems() {
-        return itemStorage.getItems();
+    public List<Item> getItems(Integer ownerId) {
+        if (ownerId == null) {
+            throw new ValidationException("Не заполненное поле владельца");
+        }
+        return itemStorage.getItems()
+                .stream()
+                .filter(item -> item.getOwner().getId().equals(ownerId))
+                .collect(Collectors.toList());
     }
 
     @Override
-    public List<Item> searchItems(String text) {
-        return getItems()
+    public List<Item> searchItems(String text, Integer ownerId) {
+        if (text.isBlank()) {
+            return Collections.emptyList();
+        }
+        return itemStorage.getItems()
                 .stream()
-                .filter(Item::isAvailable)
+                .filter(Item::getAvailable)
                 .filter(item -> item.getDescription() != null && item.getDescription().toLowerCase().contains(text.toLowerCase())
                         || item.getName() != null && item.getName().toLowerCase().contains(text.toLowerCase()))
                 .collect(Collectors.toList());

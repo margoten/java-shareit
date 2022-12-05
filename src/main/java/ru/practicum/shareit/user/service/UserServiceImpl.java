@@ -4,12 +4,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ru.practicum.shareit.exception.ConflictException;
-import ru.practicum.shareit.exception.ValidationException;
+import ru.practicum.shareit.error.ConflictException;
+import ru.practicum.shareit.error.NotFoundException;
+import ru.practicum.shareit.error.ValidationException;
 import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.dao.UserStorage;
 
-import java.time.LocalDate;
 import java.util.List;
 
 @Slf4j
@@ -25,7 +25,6 @@ public class UserServiceImpl implements UserService {
         if (getUsers().stream().anyMatch(us -> us.getEmail().equals(user.getEmail()))) {
             log.warn("Некорректный адрес электронной почты {}.", user.getEmail());
             throw new ConflictException("Пользователь с таким email уже существует " + user.getEmail() + ".");
-
         }
         user.setId(generatedId());
         return userStorage.createUser(user);
@@ -42,17 +41,21 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User getUser(Integer userId) {
+        if (userId == null) {
+            throw new ValidationException("Id пользователя не может быть пустым.");
+        }
         return userStorage.getUser(userId).orElseThrow(() -> {
-            log.error("Пользователя с id = " + userId + " не существует.");
-            return null;
+            throw new NotFoundException("Пользователя с id = " + userId + " не существует.");
         });
     }
 
     @Override
-    public User deleteUser(Integer userId) {
-        return userStorage.deleteUser(userId).orElseThrow(() -> {
-            log.error("Пользователя с id = " + userId + " не существует.");
-            return null;
+    public void deleteUser(Integer userId) {
+        if (userId == null) {
+            throw new ValidationException("Id пользователя не может быть пустым.");
+        }
+        userStorage.deleteUser(userId).orElseThrow(() -> {
+            throw new NotFoundException("Пользователя с id = " + userId + " не существует.");
         });
     }
 

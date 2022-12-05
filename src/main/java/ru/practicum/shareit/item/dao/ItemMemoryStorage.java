@@ -2,13 +2,13 @@ package ru.practicum.shareit.item.dao;
 
 import org.springframework.stereotype.Component;
 import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.user.User;
 
 import java.util.*;
 
 @Component
-public class ItemMemoryStorage implements ItemStorage{
+public class ItemMemoryStorage implements ItemStorage {
     private final Map<Integer, Item> items = new HashMap<>();
+
     @Override
     public Item createItem(Item item) {
         items.put(item.getId(), item);
@@ -17,8 +17,17 @@ public class ItemMemoryStorage implements ItemStorage{
 
     @Override
     public Item updateItem(Item item) {
-        items.put(item.getId(), item);
-        return item;
+        Item exist = items.get(item.getId());
+        if (item.getName() != null) {
+            exist.setName(item.getName());
+        }
+        if (item.getDescription() != null) {
+            exist.setDescription(item.getDescription());
+        }
+        if (item.getAvailable() != null) {
+            exist.setAvailable(item.getAvailable());
+        }
+        return exist;
     }
 
     @Override
