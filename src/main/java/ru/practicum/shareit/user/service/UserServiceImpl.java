@@ -36,7 +36,14 @@ public class UserServiceImpl implements UserService {
             log.warn("Некорректный адрес электронной почты {}.", user.getEmail());
             throw new ConflictException("Пользователь с таким email уже существует " + user.getEmail() + ".");
         }
-        return userStorage.updateUser(user);
+        User exist = getUser(user.getId());
+        if (user.getEmail() != null) {
+            exist.setEmail(user.getEmail());
+        }
+        if (user.getName() != null) {
+            exist.setName(user.getName());
+        }
+        return userStorage.updateUser(exist);
     }
 
     @Override

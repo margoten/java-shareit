@@ -41,7 +41,16 @@ public class ItemServiceImpl implements ItemService {
         if (!exist.getOwner().getId().equals(ownerId)) {
             throw new NotFoundException("У товара другой владелец");
         }
-        return itemStorage.updateItem(item);
+        if (item.getName() != null) {
+            exist.setName(item.getName());
+        }
+        if (item.getDescription() != null) {
+            exist.setDescription(item.getDescription());
+        }
+        if (item.getAvailable() != null) {
+            exist.setAvailable(item.getAvailable());
+        }
+        return itemStorage.updateItem(exist);
 
     }
 

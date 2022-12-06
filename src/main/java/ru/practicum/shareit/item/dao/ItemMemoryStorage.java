@@ -17,17 +17,8 @@ public class ItemMemoryStorage implements ItemStorage {
 
     @Override
     public Item updateItem(Item item) {
-        Item exist = items.get(item.getId());
-        if (item.getName() != null) {
-            exist.setName(item.getName());
-        }
-        if (item.getDescription() != null) {
-            exist.setDescription(item.getDescription());
-        }
-        if (item.getAvailable() != null) {
-            exist.setAvailable(item.getAvailable());
-        }
-        return exist;
+        items.put(item.getId(), item);
+        return item;
     }
 
     @Override
