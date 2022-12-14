@@ -16,11 +16,11 @@ public class ItemMapper {
     }
 
     public static Item toItem(ItemDto itemDto) {
-        return new Item(
-                itemDto.getName(),
-                itemDto.getDescription(),
-                itemDto.getAvailable()
-        );
+        return Item.builder()
+                .name(itemDto.getName())
+                .description(itemDto.getDescription())
+                .available(itemDto.getAvailable())
+                .build();
     }
 
 }

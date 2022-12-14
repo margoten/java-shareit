@@ -1,5 +1,7 @@
 package ru.practicum.shareit.booking;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -15,6 +17,8 @@ import java.time.LocalDateTime;
  */
 @Data
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @Entity
 @Table(name = "booking", schema = "public")
 public class Booking {
@@ -38,14 +42,9 @@ public class Booking {
     @JoinColumn(name = "booker_id", nullable = false)
     private User booker;
 
-    @Column(name = "status", nullable = false)
+    @Column(name = "status")
     @Enumerated(EnumType.STRING)
     private BookingState status;
-
-    public Booking(LocalDateTime start, LocalDateTime end) {
-        this.start = start;
-        this.end = end;
-    }
 
     public enum BookingState {
         WAITING(0),
@@ -56,7 +55,6 @@ public class Booking {
         private final int id;
 
         BookingState(int id) {
-
             this.id = id;
         }
     }

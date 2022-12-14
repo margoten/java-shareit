@@ -16,8 +16,10 @@ public class BookingMapper {
     }
 
     public static Booking toBooking(BookingDto bookingDto) {
-        return new Booking(
-                bookingDto.getStart(),
-                bookingDto.getEnd());
+        return Booking.builder()
+                .status(Booking.BookingState.valueOf(bookingDto.getStatus()))
+                .start(bookingDto.getStart())
+                .end(bookingDto.getEnd())
+                .build();
     }
 }

@@ -1,5 +1,7 @@
 package ru.practicum.shareit.user;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -12,7 +14,9 @@ import javax.validation.constraints.Email;
 @Entity
 @Table(name = "users", schema="public")
 @Data
+@Builder
 @NoArgsConstructor
+@AllArgsConstructor
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -23,8 +27,4 @@ public class User {
     @Column(name = "email", nullable = false, length = 512)
     private String email;
 
-    public User(String name, String email) {
-        this.name = name;
-        this.email = email;
-    }
 }
