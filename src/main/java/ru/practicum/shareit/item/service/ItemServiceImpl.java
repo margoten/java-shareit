@@ -6,8 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.error.NotFoundException;
 import ru.practicum.shareit.error.ValidationException;
-import ru.practicum.shareit.item.dao.ItemStorage;
 import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.service.UserService;
 
@@ -19,17 +19,15 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 @Slf4j
 public class ItemServiceImpl implements ItemService {
-    private final ItemStorage itemStorage;
+    private final ItemRepository itemRepository;
     private final UserService userService;
-    private int idGenerator = 0;
 
     @Override
     public Item createItem(Item item, Integer ownerId) {
         validationItem(item);
         User owner = userService.getUser(ownerId);
         item.setOwner(owner);
-        item.setId(generatedId());
-        return itemStorage.createItem(item);
+        return itemRepository.save(item);
     }
 
     @Override
@@ -50,20 +48,19 @@ public class ItemServiceImpl implements ItemService {
         if (item.getAvailable() != null) {
             exist.setAvailable(item.getAvailable());
         }
-        return itemStorage.updateItem(exist);
+        return itemRepository.save(exist);
 
     }
 
     @Override
     public Item getItem(Integer id) {
-        return itemStorage.getItem(id).orElseThrow(() ->
+        return itemRepository.findById(id).orElseThrow(() ->
                 new NotFoundException("Товара с id = " + id + " не существует."));
     }
 
     @Override
     public void deleteItem(Integer id) {
-        itemStorage.deleteItem(id).orElseThrow(() ->
-                new NotFoundException("Товара с id = " + id + " не существует."));
+        itemRepository.deleteById(id);
     }
 
     @Override
@@ -71,7 +68,7 @@ public class ItemServiceImpl implements ItemService {
         if (ownerId == null) {
             throw new ValidationException("Не заполненное поле владельца");
         }
-        return itemStorage.getItems()
+        return itemRepository.findAll()
                 .stream()
                 .filter(item -> item.getOwner().getId().equals(ownerId))
                 .collect(Collectors.toList());
@@ -82,17 +79,9 @@ public class ItemServiceImpl implements ItemService {
         if (text.isBlank()) {
             return Collections.emptyList();
         }
-        return itemStorage.getItems()
-                .stream()
-                .filter(Item::getAvailable)
-                .filter(item -> item.getDescription() != null && item.getDescription().toLowerCase().contains(text.toLowerCase())
-                        || item.getName() != null && item.getName().toLowerCase().contains(text.toLowerCase()))
-                .collect(Collectors.toList());
+        return itemRepository.search(text);
     }
 
-    private int generatedId() {
-        return ++idGenerator;
-    }
 
     private void validationItem(Item item) {
         if (item.getName() == null || item.getName().isBlank()) {

@@ -1,25 +1,45 @@
 package ru.practicum.shareit.booking;
 
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.User;
 
+import javax.persistence.*;
+import javax.persistence.criteria.CriteriaBuilder;
 import java.time.LocalDateTime;
 
 /**
  * TODO Sprint add-bookings.
  */
 @Data
+@NoArgsConstructor
+@Entity
+@Table(name = "booking", schema = "public")
 public class Booking {
-    private int id;
-    private final LocalDateTime start;
-    private final LocalDateTime end;
-    private final Item item;
-    private final User booker;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
+    @Column(name = "start", nullable = false)
+    private LocalDateTime start;
+    @Column(name = "end", nullable = false)
+    private LocalDateTime end;
+    @ManyToOne
+    @JoinColumn(name = "id", nullable = false)
+    private Item item;
+    @ManyToOne
+    @JoinColumn(name = "id", nullable = false)
+    private User booker;
+    @Column(name = "status", nullable = false)
+    @Enumerated(EnumType.STRING)
     private BookingState status;
 
+    public Booking(LocalDateTime start, LocalDateTime end) {
+        this.start = start;
+        this.end = end;
+    }
 
-    static enum BookingState {
+    public enum BookingState {
         WAITING(0),
         APPROVED(1),
         REJECTED(2),

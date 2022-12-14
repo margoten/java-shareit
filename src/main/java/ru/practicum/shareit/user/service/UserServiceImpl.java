@@ -3,12 +3,13 @@ package ru.practicum.shareit.user.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.error.ConflictException;
 import ru.practicum.shareit.error.NotFoundException;
 import ru.practicum.shareit.error.ValidationException;
 import ru.practicum.shareit.user.User;
-import ru.practicum.shareit.user.dao.UserStorage;
+import ru.practicum.shareit.user.repository.UserRepository;
 
 import java.util.List;
 
@@ -16,8 +17,8 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 public class UserServiceImpl implements UserService {
-    private final UserStorage userStorage;
-    private int idGenerator = 0;
+    private final UserRepository userRepository;
+
 
     @Override
     public User createUser(User user) {
@@ -26,8 +27,7 @@ public class UserServiceImpl implements UserService {
             log.warn("Некорректный адрес электронной почты {}.", user.getEmail());
             throw new ConflictException("Пользователь с таким email уже существует " + user.getEmail() + ".");
         }
-        user.setId(generatedId());
-        return userStorage.createUser(user);
+        return userRepository.save(user);
     }
 
     @Override
@@ -43,7 +43,7 @@ public class UserServiceImpl implements UserService {
         if (user.getName() != null) {
             exist.setName(user.getName());
         }
-        return userStorage.updateUser(exist);
+        return userRepository.save(exist);
     }
 
     @Override
@@ -51,7 +51,7 @@ public class UserServiceImpl implements UserService {
         if (userId == null) {
             throw new ValidationException("Id пользователя не может быть пустым.");
         }
-        return userStorage.getUser(userId).orElseThrow(() -> {
+        return userRepository.findById(userId).orElseThrow(() -> {
             throw new NotFoundException("Пользователя с id = " + userId + " не существует.");
         });
     }
@@ -61,18 +61,12 @@ public class UserServiceImpl implements UserService {
         if (userId == null) {
             throw new ValidationException("Id пользователя не может быть пустым.");
         }
-        userStorage.deleteUser(userId).orElseThrow(() -> {
-            throw new NotFoundException("Пользователя с id = " + userId + " не существует.");
-        });
+        userRepository.deleteById(userId);
     }
 
     @Override
     public List<User> getUsers() {
-        return userStorage.getUsers();
-    }
-
-    private int generatedId() {
-        return ++idGenerator;
+        return userRepository.findAll(Sort.sort(Integer.class));
     }
 
     private void validationUser(User user) {
