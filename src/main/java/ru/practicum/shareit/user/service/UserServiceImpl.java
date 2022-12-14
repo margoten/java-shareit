@@ -66,7 +66,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<User> getUsers() {
-        return userRepository.findAll(Sort.sort(Integer.class));
+        return userRepository.findAll();
     }
 
     private void validationUser(User user) {

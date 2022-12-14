@@ -2,6 +2,7 @@ package ru.practicum.shareit.booking.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDateTime;
 
@@ -12,7 +13,9 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class BookingDto {
     private Integer id;
+    @DateTimeFormat(pattern = "hh:mm yyyy-MM-dd")
     private LocalDateTime start;
+    @DateTimeFormat(pattern = "hh:mm yyyy-MM-dd")
     private LocalDateTime end;
     private Integer item;
     private Integer booker;

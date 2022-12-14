@@ -12,7 +12,7 @@ import javax.persistence.*;
  * TODO Sprint add-controllers.
  */
 @Entity
-@Table(name = "item", schema="public")
+@Table(name = "items", schema="public")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -27,10 +27,10 @@ public class Item {
     private Boolean available;
 
     @ManyToOne
-    @JoinColumn(name="id", nullable=false)
+    @JoinColumn(name="owner_id", nullable=false)
     private User owner;
-    @OneToOne
-    @JoinColumn(name="owner", nullable=false)
+    @ManyToOne
+    @JoinColumn(name="request_id")
     private ItemRequest request;
 
     public Item(String name, String description, Boolean available) {
