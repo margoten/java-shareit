@@ -37,7 +37,7 @@ public class BookingController {
 
     @PostMapping()
     public BookingDto createBooking(@RequestBody BookingDto bookingDto, @RequestHeader(required = false, value = "X-Sharer-User-Id") Integer userId) {
-        return BookingMapper.toBookingDto(bookingService.createBooking(BookingMapper.toBooking(bookingDto), userId));
+        return BookingMapper.toBookingDto(bookingService.createBooking(BookingMapper.toBooking(bookingDto), bookingDto.getItemId(), userId));
     }
 
     @PatchMapping("/{bookingId}")

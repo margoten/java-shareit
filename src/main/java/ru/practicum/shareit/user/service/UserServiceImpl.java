@@ -2,8 +2,9 @@ package ru.practicum.shareit.user.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Sort;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.error.ConflictException;
 import ru.practicum.shareit.error.NotFoundException;
@@ -23,19 +24,18 @@ public class UserServiceImpl implements UserService {
     @Override
     public User createUser(User user) {
         validationUser(user);
-        if (getUsers().stream().anyMatch(us -> us.getEmail().equals(user.getEmail()))) {
-            log.warn("Некорректный адрес электронной почты {}.", user.getEmail());
-            throw new ConflictException("Пользователь с таким email уже существует " + user.getEmail() + ".");
+        try {
+            return userRepository.save(user);
+        } catch (DataIntegrityViolationException e) {
+            if (e.getCause() instanceof ConstraintViolationException) {
+                throw new ConflictException("Пользователь с таким email уже существует " + user.getEmail() + ".");
+            }
         }
-        return userRepository.save(user);
+        return null;
     }
 
     @Override
     public User updateUser(User user) {
-        if (getUsers().stream().anyMatch(us -> us.getEmail().equals(user.getEmail()))) {
-            log.warn("Некорректный адрес электронной почты {}.", user.getEmail());
-            throw new ConflictException("Пользователь с таким email уже существует " + user.getEmail() + ".");
-        }
         User exist = getUser(user.getId());
         if (user.getEmail() != null) {
             exist.setEmail(user.getEmail());
@@ -43,7 +43,14 @@ public class UserServiceImpl implements UserService {
         if (user.getName() != null) {
             exist.setName(user.getName());
         }
-        return userRepository.save(exist);
+        try {
+            return userRepository.save(exist);
+        } catch (DataIntegrityViolationException e) {
+            if (e.getCause() instanceof ConstraintViolationException) {
+                throw new ConflictException("Пользователь с таким email уже существует " + user.getEmail() + ".");
+            }
+        }
+        return null;
     }
 
     @Override

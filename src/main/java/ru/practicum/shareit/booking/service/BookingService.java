@@ -5,7 +5,7 @@ import ru.practicum.shareit.booking.Booking;
 import java.util.List;
 
 public interface BookingService {
-    Booking createBooking(Booking booking, Integer bookerId);
+    Booking createBooking(Booking booking, Integer itemId, Integer bookerId);
 
     Booking updateBooking(Booking booking, Integer bookerId);
 

@@ -17,11 +17,11 @@ import java.time.LocalDateTime;
 @Builder
 public class BookingDto {
     private Integer id;
-    @DateTimeFormat(pattern = "hh:mm yyyy-MM-dd")
+//    @DateTimeFormat(pattern = "hh:mm yyyy-MM-dd")
     private LocalDateTime start;
-    @DateTimeFormat(pattern = "hh:mm yyyy-MM-dd")
+//    @DateTimeFormat(pattern = "hh:mm yyyy-MM-dd")
     private LocalDateTime end;
-    private Integer item;
+    private Integer itemId;
     private Integer booker;
     private String status;
 }

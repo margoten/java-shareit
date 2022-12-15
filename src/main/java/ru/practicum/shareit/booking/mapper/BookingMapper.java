@@ -17,7 +17,6 @@ public class BookingMapper {
 
     public static Booking toBooking(BookingDto bookingDto) {
         return Booking.builder()
-                .status(Booking.BookingState.valueOf(bookingDto.getStatus()))
                 .start(bookingDto.getStart())
                 .end(bookingDto.getEnd())
                 .build();

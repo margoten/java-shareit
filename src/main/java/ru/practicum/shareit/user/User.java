@@ -21,10 +21,10 @@ public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-    @Column(name = "name", nullable = false, length = 255)
+    @Column(name = "name", nullable = false)
     private String name;
     @Email
-    @Column(name = "email", nullable = false, length = 512)
+    @Column(name = "email", nullable = false, length = 512, unique = true)
     private String email;
 
 }

@@ -27,11 +27,11 @@ public class Booking {
     private Integer id;
 
     @Column(name = "start_date", nullable = false)
-    @DateTimeFormat(pattern = "hh:mm yyyy-MM-dd")
+//    @DateTimeFormat(pattern = "hh:mm yyyy-MM-dd")
     private LocalDateTime start;
 
     @Column(name = "end_date", nullable = false)
-    @DateTimeFormat(pattern = "hh:mm yyyy-MM-dd")
+//    @DateTimeFormat(pattern = "hh:mm yyyy-MM-dd")
     private LocalDateTime end;
 
     @ManyToOne

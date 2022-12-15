@@ -24,13 +24,14 @@ public class BookingServiceImpl implements BookingService {
     private final ItemService itemService;
 
     @Override
-    public Booking createBooking(Booking booking, Integer bookerId) {
-        Item item = itemService.getItem(booking.getId());
+    public Booking createBooking(Booking booking, Integer itemId, Integer bookerId) {
+        Item item = itemService.getItem(itemId);
         if (!item.getAvailable()) {
             throw new ValidationException("Товар с id " + item.getId() + " не доступен до бронирования");
         }
         User booker = userService.getUser(bookerId);
         booking.setBooker(booker);
+        booking.setItem(item);
         return bookingRepository.save(booking);
     }
 
