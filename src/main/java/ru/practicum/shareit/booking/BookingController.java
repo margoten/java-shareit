@@ -3,6 +3,7 @@ package ru.practicum.shareit.booking;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import ru.practicum.shareit.booking.dto.BookingCreateDto;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.mapper.BookingMapper;
 import ru.practicum.shareit.booking.service.BookingService;
@@ -36,15 +37,13 @@ public class BookingController {
     }
 
     @PostMapping()
-    public BookingDto createBooking(@RequestBody BookingDto bookingDto, @RequestHeader(required = false, value = "X-Sharer-User-Id") Integer userId) {
+    public BookingDto createBooking(@RequestBody BookingCreateDto bookingDto, @RequestHeader(required = false, value = "X-Sharer-User-Id") Integer userId) {
         return BookingMapper.toBookingDto(bookingService.createBooking(BookingMapper.toBooking(bookingDto), bookingDto.getItemId(), userId));
     }
 
     @PatchMapping("/{bookingId}")
-    public BookingDto approveBooking(@RequestBody BookingDto bookingDto, @PathVariable Integer bookingId, @RequestParam(required = false) boolean approved, @RequestHeader(required = false, value = "X-Sharer-User-Id") Integer userId) {
-        Booking booking = BookingMapper.toBooking(bookingDto);
-        booking.setId(bookingId);
-        return BookingMapper.toBookingDto(bookingService.approveBooking(booking, approved, userId));
+    public BookingDto approveBooking(@PathVariable Integer bookingId, @RequestParam(required = false) boolean approved, @RequestHeader(required = false, value = "X-Sharer-User-Id") Integer userId) {
+        return BookingMapper.toBookingDto(bookingService.approveBooking(bookingId, approved, userId));
     }
 
     @GetMapping("/{bookingId}")

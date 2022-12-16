@@ -15,7 +15,7 @@ public interface BookingService {
 
     List<Booking> getBookings(Integer bookerId, String state);
 
-    Booking approveBooking(Booking booking, boolean approved, Integer userId);
+    Booking approveBooking(Integer bookingId, boolean approved, Integer userId);
 
     List<Booking> getOwnerBookings(Integer userId, String state);
 }
