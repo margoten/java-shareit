@@ -95,10 +95,10 @@ public class ItemServiceImpl implements ItemService {
         User user = userService.getUser(userId);
 
         List<Booking> bookings = bookingService.getBookings(userId, "PAST");
-        if(bookings.isEmpty()) {
+        if (bookings.isEmpty()) {
             throw new ValidationException("Пользователь не может оставлять коментарий ");
         }
-        if(comment.getText() == null || comment.getText().isBlank()) {
+        if (comment.getText() == null || comment.getText().isBlank()) {
             throw new ValidationException("Текс комментария не может быть пустым");
         }
 

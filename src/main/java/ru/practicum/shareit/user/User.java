@@ -12,7 +12,7 @@ import javax.validation.constraints.Email;
  * TODO Sprint add-controllers.
  */
 @Entity
-@Table(name = "users", schema="public")
+@Table(name = "users", schema = "public")
 @Data
 @Builder
 @NoArgsConstructor
