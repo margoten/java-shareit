@@ -22,6 +22,7 @@ public class ItemRequest {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
+    @Column(nullable = false, length = 512)
     private String description;
 
     @ManyToOne
@@ -29,6 +30,5 @@ public class ItemRequest {
     private User requestor;
 
     @Column(name = "created", nullable = false)
-    @DateTimeFormat(pattern = "hh:mm yyyy-MM-dd")
     private LocalDateTime created;
 }

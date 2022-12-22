@@ -4,13 +4,18 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import ru.practicum.shareit.booking.Booking;
+import ru.practicum.shareit.booking.service.BookingService;
 import ru.practicum.shareit.error.NotFoundException;
 import ru.practicum.shareit.error.ValidationException;
+import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.item.repository.CommentRepository;
 import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.service.UserService;
 
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -20,7 +25,9 @@ import java.util.stream.Collectors;
 @Slf4j
 public class ItemServiceImpl implements ItemService {
     private final ItemRepository itemRepository;
+    private final CommentRepository commentRepository;
     private final UserService userService;
+    private final BookingService bookingService;
 
     @Override
     public Item createItem(Item item, Integer ownerId) {
@@ -82,6 +89,31 @@ public class ItemServiceImpl implements ItemService {
         return itemRepository.search(text);
     }
 
+    @Override
+    public Comment createComment(Comment comment, Integer itemId, Integer userId) {
+        Item item = getItem(itemId);
+        User user = userService.getUser(userId);
+
+        List<Booking> bookings = bookingService.getBookings(userId, "PAST");
+        if(bookings.isEmpty()) {
+            throw new ValidationException("Пользователь не может оставлять коментарий ");
+        }
+        if(comment.getText() == null || comment.getText().isBlank()) {
+            throw new ValidationException("Текс комментария не может быть пустым");
+        }
+
+        comment.setItem(item);
+        comment.setAuthor(user);
+        comment.setCreated(LocalDateTime.now());
+        return commentRepository.save(comment);
+
+    }
+
+    @Override
+    public List<Comment> getComments(Integer itemId) {
+        Item item = getItem(itemId);
+        return commentRepository.findCommentByItemIsOrderByCreated(item);
+    }
 
     private void validationItem(Item item) {
         if (item.getName() == null || item.getName().isBlank()) {

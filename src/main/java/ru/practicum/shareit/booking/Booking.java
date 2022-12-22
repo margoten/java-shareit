@@ -1,12 +1,10 @@
 package ru.practicum.shareit.booking;
 
 import lombok.*;
-import org.springframework.format.annotation.DateTimeFormat;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.User;
 
 import javax.persistence.*;
-import javax.persistence.criteria.CriteriaBuilder;
 import java.time.LocalDateTime;
 
 /**
@@ -25,11 +23,9 @@ public class Booking {
     private Integer id;
 
     @Column(name = "start_date", nullable = false)
-//    @DateTimeFormat(pattern = "hh:mm yyyy-MM-dd")
     private LocalDateTime start;
 
     @Column(name = "end_date", nullable = false)
-//    @DateTimeFormat(pattern = "hh:mm yyyy-MM-dd")
     private LocalDateTime end;
 
     @ManyToOne
@@ -40,20 +36,20 @@ public class Booking {
     @JoinColumn(name = "booker_id", nullable = false)
     private User booker;
 
-    @Column(name = "status")
     @Enumerated(EnumType.STRING)
     private BookingState status;
 
     public enum BookingState {
-        WAITING(0),
-        APPROVED(1),
-        REJECTED(2),
-        CANCELED(3);
+        WAITING,
+        APPROVED,
+        REJECTED,
+        CANCELED;
+    }
 
-        private final int id;
-
-        BookingState(int id) {
-            this.id = id;
-        }
+    public enum TimeBookingState {
+        ALL,
+        PAST,
+        CURRENT,
+        FUTURE;
     }
 }

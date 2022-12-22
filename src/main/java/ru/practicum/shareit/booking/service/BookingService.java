@@ -1,21 +1,22 @@
 package ru.practicum.shareit.booking.service;
 
 import ru.practicum.shareit.booking.Booking;
+import ru.practicum.shareit.item.model.Item;
 
 import java.util.List;
 
 public interface BookingService {
-    Booking createBooking(Booking booking, Integer itemId, Integer bookerId);
-
-    Booking updateBooking(Booking booking, Integer bookerId);
-
     Booking getBooking(Integer id, Integer userId);
-
-    void deleteBooking(Integer id);
 
     List<Booking> getBookings(Integer bookerId, String state);
 
+    Booking getLastItemBooking(Item item, Integer bookerId);
+
+    Booking getNextItemBooking(Item item, Integer bookerId);
+
+    Booking createBooking(Booking booking, Item item, Integer bookerId);
+
     Booking approveBooking(Integer bookingId, boolean approved, Integer userId);
 
-    List<Booking> getOwnerBookings(Integer userId, String state);
+    List<Booking> getOwnersBookings(Integer userId, String state);
 }

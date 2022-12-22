@@ -4,7 +4,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.format.annotation.DateTimeFormat;
 import ru.practicum.shareit.user.User;
 
 import javax.persistence.*;
@@ -32,6 +31,5 @@ public class Comment {
     private User author;
 
     @Column(nullable = false)
-    @DateTimeFormat(pattern = "hh:mm yyyy-MM-dd")
     private LocalDateTime created;
 }

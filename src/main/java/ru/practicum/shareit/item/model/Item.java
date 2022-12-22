@@ -13,7 +13,7 @@ import javax.persistence.*;
  * TODO Sprint add-controllers.
  */
 @Entity
-@Table(name = "items", schema="public")
+@Table(name = "items", schema = "public")
 @Data
 @Builder
 @NoArgsConstructor
@@ -22,16 +22,21 @@ public class Item {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-    @Column(nullable = false, length = 255)
+
+    @Column(nullable = false)
     private String name;
+
     @Column(nullable = false, length = 512)
     private String description;
+
+    @Column(nullable = false)
     private Boolean available;
 
     @ManyToOne
-    @JoinColumn(name="owner_id", nullable=false)
+    @JoinColumn(name = "owner_id", nullable = false)
     private User owner;
+
     @ManyToOne
-    @JoinColumn(name="request_id")
+    @JoinColumn(name = "request_id")
     private ItemRequest request;
 }
