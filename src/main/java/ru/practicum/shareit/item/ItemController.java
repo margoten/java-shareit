@@ -3,6 +3,8 @@ package ru.practicum.shareit.item;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import ru.practicum.shareit.booking.Booking;
+import ru.practicum.shareit.booking.mapper.BookingMapper;
 import ru.practicum.shareit.booking.service.BookingService;
 import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
@@ -13,6 +15,7 @@ import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.service.ItemService;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -27,12 +30,21 @@ public class ItemController {
 
     @GetMapping()
     public List<ItemExtendedDto> getAllItems(@RequestHeader(required = false, value = "X-Sharer-User-Id") Integer userId) {
+        Map<Integer, List<CommentDto>> commentDto = itemService.getAllComments()
+                .stream()
+                .map(CommentMapper::toCommentDto)
+                .collect(Collectors.groupingBy(CommentDto::getItemId));
+
+        Map<Item, List<Booking>> bookings = bookingService.getOwnersBookings(userId, null)
+                .stream()
+                .collect(Collectors.groupingBy(Booking::getItem));
+
         return itemService.getItems(userId)
                 .stream()
                 .map(item -> ItemMapper.toItemExtendedDto(item,
-                        bookingService.getLastItemBooking(item, userId),
-                        bookingService.getNextItemBooking(item, userId),
-                        itemService.getComments(item.getId())))
+                        BookingMapper.toSimpleBookingDto(bookingService.getLastItemBooking(bookings.get(item))),
+                        BookingMapper.toSimpleBookingDto(bookingService.getNextItemBooking(bookings.get(item))),
+                        commentDto.get(item.getId())))
                 .collect(Collectors.toList());
     }
 
@@ -60,9 +72,12 @@ public class ItemController {
     public ItemExtendedDto getItem(@PathVariable int itemId, @RequestHeader(required = false, value = "X-Sharer-User-Id") Integer userId) {
         Item item = itemService.getItem(itemId);
         return ItemMapper.toItemExtendedDto(item,
-                bookingService.getLastItemBooking(item, userId),
-                bookingService.getNextItemBooking(item, userId),
-                itemService.getComments(item.getId()));
+                BookingMapper.toSimpleBookingDto(bookingService.getLastItemBooking(item, userId)),
+                BookingMapper.toSimpleBookingDto(bookingService.getNextItemBooking(item, userId)),
+                itemService.getComments(item.getId())
+                        .stream()
+                        .map(CommentMapper::toCommentDto)
+                        .collect(Collectors.toList()));
     }
 
     @DeleteMapping("/{itemId}")

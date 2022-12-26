@@ -15,6 +15,7 @@ import ru.practicum.shareit.user.service.UserService;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -132,6 +133,24 @@ public class BookingServiceImpl implements BookingService {
     public Booking getNextItemBooking(Item item, Integer bookerId) {
         User user = userService.getUser(bookerId);
         return bookingRepository.findFirstByOwnerIsAndStartAfterOrderByStartAsc(item, user, LocalDateTime.now()).orElse(null);
+    }
+
+    @Override
+    public Booking getLastItemBooking(List<Booking> bookings) {
+        return bookings == null
+                ? null
+                : bookings.stream()
+                .filter(booking -> booking.getEnd().isBefore(LocalDateTime.now()))
+                .max(Comparator.comparing(Booking::getEnd)).orElse(null);
+    }
+
+    @Override
+    public Booking getNextItemBooking(List<Booking> bookings) {
+        return bookings == null
+                ? null
+                : bookings.stream()
+                .filter(booking -> booking.getStart().isAfter(LocalDateTime.now()))
+                .min(Comparator.comparing(Booking::getEnd)).orElse(null);
     }
 
     private void validationBooking(Booking booking) {

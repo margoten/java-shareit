@@ -115,6 +115,11 @@ public class ItemServiceImpl implements ItemService {
         return commentRepository.findCommentByItemIsOrderByCreated(item);
     }
 
+    @Override
+    public List<Comment> getAllComments() {
+        return commentRepository.findAll();
+    }
+
     private void validationItem(Item item) {
         if (item.getName() == null || item.getName().isBlank()) {
             log.warn("Название не может быть пустым.");

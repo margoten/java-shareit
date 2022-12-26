@@ -21,4 +21,6 @@ public interface ItemService {
     Comment createComment(Comment comment, Integer itemId, Integer userId);
 
     List<Comment> getComments(Integer itemId);
+
+    List<Comment> getAllComments();
 }

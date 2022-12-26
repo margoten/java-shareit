@@ -1,14 +1,12 @@
 package ru.practicum.shareit.item.mapper;
 
-import ru.practicum.shareit.booking.Booking;
-import ru.practicum.shareit.booking.mapper.BookingMapper;
+import ru.practicum.shareit.booking.dto.BookingDto;
+import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemExtendedDto;
-import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class ItemMapper {
     public static ItemDto toItemDto(Item item) {
@@ -22,7 +20,7 @@ public class ItemMapper {
         );
     }
 
-    public static ItemExtendedDto toItemExtendedDto(Item item, Booking lastBooking, Booking nextBooking, List<Comment> comments) {
+    public static ItemExtendedDto toItemExtendedDto(Item item, BookingDto lastBooking, BookingDto nextBooking, List<CommentDto> comments) {
         return new ItemExtendedDto(
                 item.getId(),
                 item.getName(),
@@ -30,9 +28,9 @@ public class ItemMapper {
                 item.getAvailable(),
                 item.getOwner() != null ? item.getOwner().getId() : null,
                 item.getRequest() != null ? item.getRequest().getId() : null,
-                lastBooking != null ? BookingMapper.toSimpleBookingDto(lastBooking) : null,
-                nextBooking != null ? BookingMapper.toSimpleBookingDto(nextBooking) : null,
-                comments.stream().map(CommentMapper::toCommentDto).collect(Collectors.toList())
+                lastBooking,
+                nextBooking,
+                comments
         );
     }
 

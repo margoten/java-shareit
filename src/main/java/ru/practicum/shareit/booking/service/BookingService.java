@@ -19,4 +19,10 @@ public interface BookingService {
     Booking approveBooking(Integer bookingId, boolean approved, Integer userId);
 
     List<Booking> getOwnersBookings(Integer userId, String state);
+
+    Booking getLastItemBooking(List<Booking> bookings);
+
+    Booking getNextItemBooking(List<Booking> bookings);
+
+
 }
