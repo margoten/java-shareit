@@ -1,28 +1,28 @@
 package ru.practicum.shareit.booking.service;
 
 import ru.practicum.shareit.booking.Booking;
+import ru.practicum.shareit.booking.dto.BookingCreateDto;
+import ru.practicum.shareit.booking.dto.BookingDto;
+import ru.practicum.shareit.booking.dto.BookingExtendedDto;
+import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.dto.ItemExtendedDto;
 import ru.practicum.shareit.item.model.Item;
 
 import java.util.List;
 
 public interface BookingService {
-    Booking getBooking(Integer id, Integer userId);
+    BookingExtendedDto getBooking(Integer id, Integer userId);
 
-    List<Booking> getBookings(Integer bookerId, String state);
+    List<BookingExtendedDto> getBookings(Integer bookerId, String state);
 
-    Booking getLastItemBooking(Item item, Integer bookerId);
+    BookingExtendedDto createBooking(BookingCreateDto booking, ItemExtendedDto itemDto, Integer bookerId);
 
-    Booking getNextItemBooking(Item item, Integer bookerId);
+    BookingExtendedDto approveBooking(Integer bookingId, boolean approved, Integer userId);
 
-    Booking createBooking(Booking booking, Item item, Integer bookerId);
+    List<BookingExtendedDto> getOwnersBookings(Integer userId, String state);
 
-    Booking approveBooking(Integer bookingId, boolean approved, Integer userId);
+    List<BookingExtendedDto> getBookingsByItem(Integer itemId);
 
-    List<Booking> getOwnersBookings(Integer userId, String state);
-
-    Booking getLastItemBooking(List<Booking> bookings);
-
-    Booking getNextItemBooking(List<Booking> bookings);
 
 
 }

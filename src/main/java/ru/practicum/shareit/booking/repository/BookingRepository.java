@@ -12,7 +12,7 @@ import java.util.Optional;
 
 public interface BookingRepository extends JpaRepository<Booking, Integer> {
     //region Методы запросов бронирования для автора бронирования
-    List<Booking> findBookingsByItemIsAndStatusIsAndEndIsAfter(Item item, Booking.BookingState bookingState, LocalDateTime localDateTime);
+    List<Booking> findBookingsByItem_IdIsAndStatusIsAndEndIsAfter(Integer itemId, Booking.BookingState bookingState, LocalDateTime localDateTime);
 
     List<Booking> findBookingsByBookerIsOrderByStartDesc(User booker);
 
@@ -41,10 +41,7 @@ public interface BookingRepository extends JpaRepository<Booking, Integer> {
     @Query("select b from Booking b inner join b.item i where i.owner = ?1 and b.start < ?2 and b.end > ?3 order by b.start desc")
     List<Booking> findBookingsByOwnerIsAndStartBeforeAndEndAfterOrderByStartDesc(User owner, LocalDateTime startDateTime, LocalDateTime endDateTime);
 
-    @Query("select b from Booking b inner join b.item i where i.owner = ?2 and i = ?1 and b.end < ?3 order by b.start desc")
-    Optional<Booking> findFirstByOwnerIsAndEndBeforeOrderByStartDesc(Item item, User user, LocalDateTime date);
+    List<Booking> findBookingsByItem_IdOrderByStart(Integer itemId);
 
-    @Query("select b from Booking b inner join b.item i where i.owner = ?2 and i = ?1 and b.start > ?3 order by b.start desc")
-    Optional<Booking> findFirstByOwnerIsAndStartAfterOrderByStartAsc(Item item, User user, LocalDateTime date);
     //endregion
 }

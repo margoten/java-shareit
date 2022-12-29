@@ -10,9 +10,12 @@ import ru.practicum.shareit.error.ConflictException;
 import ru.practicum.shareit.error.NotFoundException;
 import ru.practicum.shareit.error.ValidationException;
 import ru.practicum.shareit.user.User;
+import ru.practicum.shareit.user.dto.UserDto;
+import ru.practicum.shareit.user.mapper.UserMapper;
 import ru.practicum.shareit.user.repository.UserRepository;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -22,45 +25,40 @@ public class UserServiceImpl implements UserService {
 
 
     @Override
-    public User createUser(User user) {
-        validationUser(user);
+    public UserDto createUser(UserDto userDto) {
+        validationUser(userDto);
         try {
-            return userRepository.save(user);
+            return UserMapper.toUserDto(userRepository.save(UserMapper.toUser(userDto)));
         } catch (DataIntegrityViolationException e) {
             if (e.getCause() instanceof ConstraintViolationException) {
-                throw new ConflictException("Пользователь с таким email уже существует " + user.getEmail() + ".");
+                throw new ConflictException("Пользователь с таким email уже существует " + userDto.getEmail() + ".");
             }
         }
         return null;
     }
 
     @Override
-    public User updateUser(User user) {
-        User exist = getUser(user.getId());
-        if (user.getEmail() != null) {
-            exist.setEmail(user.getEmail());
+    public UserDto updateUser(UserDto userDto, Integer userId) {
+        User exist = getUserFromDB(userId);
+        if (userDto.getEmail() != null) {
+            exist.setEmail(userDto.getEmail());
         }
-        if (user.getName() != null) {
-            exist.setName(user.getName());
+        if (userDto.getName() != null) {
+            exist.setName(userDto.getName());
         }
         try {
-            return userRepository.save(exist);
+            return UserMapper.toUserDto(userRepository.save(exist));
         } catch (DataIntegrityViolationException e) {
             if (e.getCause() instanceof ConstraintViolationException) {
-                throw new ConflictException("Пользователь с таким email уже существует " + user.getEmail() + ".");
+                throw new ConflictException("Пользователь с таким email уже существует " + userDto.getEmail() + ".");
             }
         }
         return null;
     }
 
     @Override
-    public User getUser(Integer userId) {
-        if (userId == null) {
-            throw new ValidationException("Id пользователя не может быть пустым.");
-        }
-        return userRepository.findById(userId).orElseThrow(() -> {
-            throw new NotFoundException("Пользователя с id = " + userId + " не существует.");
-        });
+    public UserDto getUser(Integer userId) {
+        return UserMapper.toUserDto(getUserFromDB(userId));
     }
 
     @Override
@@ -72,11 +70,24 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<User> getUsers() {
-        return userRepository.findAll();
+    public List<UserDto> getUsers() {
+        return userRepository.findAll()
+                .stream()
+                .map(UserMapper::toUserDto)
+                .collect(Collectors.toList());
     }
 
-    private void validationUser(User user) {
+    private User getUserFromDB(Integer userId) {
+        if (userId == null) {
+            throw new ValidationException("Id пользователя не может быть пустым.");
+        }
+        return userRepository.findById(userId).orElseThrow(() -> {
+            throw new NotFoundException("Пользователя с id = " + userId + " не существует.");
+        });
+    }
+
+
+    private void validationUser(UserDto user) {
         if (user.getEmail() == null) {
             log.warn("Email не может быть пустым.");
             throw new ValidationException("email не может быть пустым.");
