@@ -162,8 +162,8 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public List<BookingExtendedDto> getBookingsByItem(Integer itemId) {
-        return bookingRepository.findBookingsByItem_IdOrderByStart(itemId)
+    public List<BookingExtendedDto> getBookingsByItem(Integer itemId, Integer userId) {
+        return bookingRepository.findBookingsByItem_IdAndItem_Owner_IdIsOrderByStart(itemId, userId)
                 .stream()
                 .map(BookingMapper::toBookingExtendedDto)
                 .collect(Collectors.toList());

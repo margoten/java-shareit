@@ -70,13 +70,13 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public ItemExtendedDto getItem(Integer id) {
+    public ItemExtendedDto getItem(Integer id, Integer userId) {
         Item item = itemRepository.findById(id).orElseThrow(() ->
                 new NotFoundException("Товара с id = " + id + " не существует."));
         Map<Integer, List<CommentDto>> comments = getAllComments()
                 .stream().collect(Collectors.groupingBy(CommentDto::getItemId));
 
-        List<BookingExtendedDto> bookings = bookingService.getBookingsByItem(item.getId());
+        List<BookingExtendedDto> bookings = bookingService.getBookingsByItem(item.getId(), userId);
 
         return ItemMapper.toItemExtendedDto(item,
                 getLastItemBooking(bookings),

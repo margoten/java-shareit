@@ -3,12 +3,10 @@ package ru.practicum.shareit.booking.repository;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import ru.practicum.shareit.booking.Booking;
-import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.User;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 public interface BookingRepository extends JpaRepository<Booking, Integer> {
     //region Методы запросов бронирования для автора бронирования
@@ -41,7 +39,7 @@ public interface BookingRepository extends JpaRepository<Booking, Integer> {
     @Query("select b from Booking b inner join b.item i where i.owner = ?1 and b.start < ?2 and b.end > ?3 order by b.start desc")
     List<Booking> findBookingsByOwnerIsAndStartBeforeAndEndAfterOrderByStartDesc(User owner, LocalDateTime startDateTime, LocalDateTime endDateTime);
 
-    List<Booking> findBookingsByItem_IdOrderByStart(Integer itemId);
+    List<Booking> findBookingsByItem_IdAndItem_Owner_IdIsOrderByStart(Integer itemId, Integer userId);
 
     //endregion
 }

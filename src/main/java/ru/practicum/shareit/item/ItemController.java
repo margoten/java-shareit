@@ -44,7 +44,7 @@ public class ItemController {
 
     @GetMapping("/{itemId}")
     public ItemExtendedDto getItem(@PathVariable int itemId, @RequestHeader(required = false, value = "X-Sharer-User-Id") Integer userId) {
-        return itemService.getItem(itemId);
+        return itemService.getItem(itemId, userId);
     }
 
     @DeleteMapping("/{itemId}")

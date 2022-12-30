@@ -31,12 +31,13 @@ public class ItemMapper {
                 item.getRequest() != null ? item.getRequest().getId() : null,
                 lastBooking == null ? null : new BookingDto(lastBooking.getId(), lastBooking.getBooker().getId()),
                 nextBooking == null ? null : new BookingDto(nextBooking.getId(), nextBooking.getBooker().getId()),
-                comments
+                comments == null ? List.of() : comments
         );
     }
 
     public static Item toItem(ItemDto itemDto) {
         return Item.builder()
+                .id(itemDto.getId())
                 .name(itemDto.getName())
                 .description(itemDto.getDescription())
                 .available(itemDto.getAvailable())
@@ -45,6 +46,7 @@ public class ItemMapper {
 
     public static Item toItem(ItemExtendedDto itemDto) {
         return Item.builder()
+                .id(itemDto.getId())
                 .name(itemDto.getName())
                 .description(itemDto.getDescription())
                 .available(itemDto.getAvailable())

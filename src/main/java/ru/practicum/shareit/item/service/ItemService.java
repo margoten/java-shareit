@@ -11,7 +11,7 @@ public interface ItemService {
 
     ItemDto updateItem(ItemDto item, Integer userId);
 
-    ItemExtendedDto getItem(Integer id);
+    ItemExtendedDto getItem(Integer id, Integer userId);
 
     void deleteItem(Integer id);
 

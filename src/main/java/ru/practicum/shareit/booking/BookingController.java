@@ -6,7 +6,6 @@ import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.booking.dto.BookingCreateDto;
 import ru.practicum.shareit.booking.dto.BookingExtendedDto;
 import ru.practicum.shareit.booking.service.BookingService;
-import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemExtendedDto;
 import ru.practicum.shareit.item.service.ItemService;
 
@@ -34,7 +33,7 @@ public class BookingController {
 
     @PostMapping()
     public BookingExtendedDto createBooking(@RequestBody BookingCreateDto bookingDto, @RequestHeader(required = false, value = "X-Sharer-User-Id") Integer userId) {
-        ItemExtendedDto item = itemService.getItem(bookingDto.getItemId());
+        ItemExtendedDto item = itemService.getItem(bookingDto.getItemId(), userId);
         return bookingService.createBooking(bookingDto, item, userId);
     }
 
