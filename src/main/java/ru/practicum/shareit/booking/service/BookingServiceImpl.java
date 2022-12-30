@@ -128,32 +128,32 @@ public class BookingServiceImpl implements BookingService {
         User owner = UserMapper.toUser(userService.getUser(userId));
 
         if (state == null || state.equals(Booking.TimeBookingState.ALL.name())) {
-            return bookingRepository.findBookingsByOwnerOrderByStartDesc(owner)
+            return bookingRepository.findBookingsByItemOwnerIsOrderByStartDesc(owner)
                     .stream()
                     .map(BookingMapper::toBookingExtendedDto)
                     .collect(Collectors.toList());
         }
         if (state.equals(Booking.TimeBookingState.FUTURE.name())) {
-            return bookingRepository.findBookingsByOwnerAndStartAfterOrderByStartDesc(owner, LocalDateTime.now())
+            return bookingRepository.findBookingsByItemOwnerAndStartAfterOrderByStartDesc(owner, LocalDateTime.now())
                     .stream()
                     .map(BookingMapper::toBookingExtendedDto)
                     .collect(Collectors.toList());
         }
         if (state.equals(Booking.TimeBookingState.CURRENT.name())) {
-            return bookingRepository.findBookingsByOwnerIsAndStartBeforeAndEndAfterOrderByStartDesc(owner, LocalDateTime.now(), LocalDateTime.now())
+            return bookingRepository.findBookingsByItemOwnerIsAndStartBeforeAndEndAfterOrderByStartDesc(owner, LocalDateTime.now(), LocalDateTime.now())
                     .stream()
                     .map(BookingMapper::toBookingExtendedDto)
                     .collect(Collectors.toList());
         }
 
         if (state.equals(Booking.TimeBookingState.PAST.name())) {
-            return bookingRepository.findBookingsByOwnerAndEndBeforeOrderByStartDesc(owner, LocalDateTime.now())
+            return bookingRepository.findBookingsByItemOwnerAndEndBeforeOrderByStartDesc(owner, LocalDateTime.now())
                     .stream()
                     .map(BookingMapper::toBookingExtendedDto)
                     .collect(Collectors.toList());
         }
         if (Arrays.stream(Booking.BookingState.values()).anyMatch(bookingState -> bookingState.name().equals(state))) {
-            return bookingRepository.findBookingsByOwnerIsAndStatusIsOrderByStartDesc(owner, Booking.BookingState.valueOf(state))
+            return bookingRepository.findBookingsByItemOwnerIsAndStatusIsOrderByStartDesc(owner, Booking.BookingState.valueOf(state))
                     .stream()
                     .map(BookingMapper::toBookingExtendedDto)
                     .collect(Collectors.toList());

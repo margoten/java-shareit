@@ -1,7 +1,6 @@
 package ru.practicum.shareit.booking.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
 import ru.practicum.shareit.booking.Booking;
 import ru.practicum.shareit.user.User;
 
@@ -24,20 +23,15 @@ public interface BookingRepository extends JpaRepository<Booking, Integer> {
     //endregion
 
     //region Методы запросов бронирования для владельца товара
-    @Query("select b from Booking b inner join b.item i where i.owner = ?1 order by b.start desc")
-    List<Booking> findBookingsByOwnerOrderByStartDesc(User owner);
+    List<Booking> findBookingsByItemOwnerIsOrderByStartDesc(User owner);
 
-    @Query("select b from Booking b inner join b.item i where i.owner = ?1 and b.start > ?2 order by b.start desc")
-    List<Booking> findBookingsByOwnerAndStartAfterOrderByStartDesc(User owner, LocalDateTime localDateTime);
+    List<Booking> findBookingsByItemOwnerAndStartAfterOrderByStartDesc(User owner, LocalDateTime localDateTime);
 
-    @Query("select b from Booking b inner join b.item i where i.owner = ?1 and b.end < ?2 order by b.start desc")
-    List<Booking> findBookingsByOwnerAndEndBeforeOrderByStartDesc(User owner, LocalDateTime localDateTime);
+    List<Booking> findBookingsByItemOwnerAndEndBeforeOrderByStartDesc(User owner, LocalDateTime localDateTime);
 
-    @Query("select b from Booking b inner join b.item i where i.owner = ?1 and b.status = ?2 order by b.start desc")
-    List<Booking> findBookingsByOwnerIsAndStatusIsOrderByStartDesc(User owner, Booking.BookingState bookingState);
+    List<Booking> findBookingsByItemOwnerIsAndStatusIsOrderByStartDesc(User owner, Booking.BookingState bookingState);
 
-    @Query("select b from Booking b inner join b.item i where i.owner = ?1 and b.start < ?2 and b.end > ?3 order by b.start desc")
-    List<Booking> findBookingsByOwnerIsAndStartBeforeAndEndAfterOrderByStartDesc(User owner, LocalDateTime startDateTime, LocalDateTime endDateTime);
+    List<Booking> findBookingsByItemOwnerIsAndStartBeforeAndEndAfterOrderByStartDesc(User owner, LocalDateTime startDateTime, LocalDateTime endDateTime);
 
     List<Booking> findBookingsByItem_IdAndItem_Owner_IdIsOrderByStart(Integer itemId, Integer userId);
 
