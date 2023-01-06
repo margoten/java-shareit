@@ -2,58 +2,63 @@ package ru.practicum.shareit.user.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.error.ConflictException;
 import ru.practicum.shareit.error.NotFoundException;
 import ru.practicum.shareit.error.ValidationException;
 import ru.practicum.shareit.user.User;
-import ru.practicum.shareit.user.dao.UserStorage;
+import ru.practicum.shareit.user.dto.UserDto;
+import ru.practicum.shareit.user.mapper.UserMapper;
+import ru.practicum.shareit.user.repository.UserRepository;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 public class UserServiceImpl implements UserService {
-    private final UserStorage userStorage;
-    private int idGenerator = 0;
+    private final UserRepository userRepository;
+
 
     @Override
-    public User createUser(User user) {
-        validationUser(user);
-        if (getUsers().stream().anyMatch(us -> us.getEmail().equals(user.getEmail()))) {
-            log.warn("Некорректный адрес электронной почты {}.", user.getEmail());
-            throw new ConflictException("Пользователь с таким email уже существует " + user.getEmail() + ".");
+    public UserDto createUser(UserDto userDto) {
+        validationUser(userDto);
+        try {
+            return UserMapper.toUserDto(userRepository.save(UserMapper.toUser(userDto)));
+        } catch (DataIntegrityViolationException e) {
+            if (e.getCause() instanceof ConstraintViolationException) {
+                throw new ConflictException("Пользователь с таким email уже существует " + userDto.getEmail() + ".");
+            }
         }
-        user.setId(generatedId());
-        return userStorage.createUser(user);
+        return null;
     }
 
     @Override
-    public User updateUser(User user) {
-        if (getUsers().stream().anyMatch(us -> us.getEmail().equals(user.getEmail()))) {
-            log.warn("Некорректный адрес электронной почты {}.", user.getEmail());
-            throw new ConflictException("Пользователь с таким email уже существует " + user.getEmail() + ".");
+    public UserDto updateUser(UserDto userDto, Integer userId) {
+        User exist = getUserFromDB(userId);
+        if (userDto.getEmail() != null) {
+            exist.setEmail(userDto.getEmail());
         }
-        User exist = getUser(user.getId());
-        if (user.getEmail() != null) {
-            exist.setEmail(user.getEmail());
+        if (userDto.getName() != null) {
+            exist.setName(userDto.getName());
         }
-        if (user.getName() != null) {
-            exist.setName(user.getName());
+        try {
+            return UserMapper.toUserDto(userRepository.save(exist));
+        } catch (DataIntegrityViolationException e) {
+            if (e.getCause() instanceof ConstraintViolationException) {
+                throw new ConflictException("Пользователь с таким email уже существует " + userDto.getEmail() + ".");
+            }
         }
-        return userStorage.updateUser(exist);
+        return null;
     }
 
     @Override
-    public User getUser(Integer userId) {
-        if (userId == null) {
-            throw new ValidationException("Id пользователя не может быть пустым.");
-        }
-        return userStorage.getUser(userId).orElseThrow(() -> {
-            throw new NotFoundException("Пользователя с id = " + userId + " не существует.");
-        });
+    public UserDto getUser(Integer userId) {
+        return UserMapper.toUserDto(getUserFromDB(userId));
     }
 
     @Override
@@ -61,21 +66,28 @@ public class UserServiceImpl implements UserService {
         if (userId == null) {
             throw new ValidationException("Id пользователя не может быть пустым.");
         }
-        userStorage.deleteUser(userId).orElseThrow(() -> {
+        userRepository.deleteById(userId);
+    }
+
+    @Override
+    public List<UserDto> getUsers() {
+        return userRepository.findAll()
+                .stream()
+                .map(UserMapper::toUserDto)
+                .collect(Collectors.toList());
+    }
+
+    private User getUserFromDB(Integer userId) {
+        if (userId == null) {
+            throw new ValidationException("Id пользователя не может быть пустым.");
+        }
+        return userRepository.findById(userId).orElseThrow(() -> {
             throw new NotFoundException("Пользователя с id = " + userId + " не существует.");
         });
     }
 
-    @Override
-    public List<User> getUsers() {
-        return userStorage.getUsers();
-    }
 
-    private int generatedId() {
-        return ++idGenerator;
-    }
-
-    private void validationUser(User user) {
+    private void validationUser(UserDto user) {
         if (user.getEmail() == null) {
             log.warn("Email не может быть пустым.");
             throw new ValidationException("email не может быть пустым.");
