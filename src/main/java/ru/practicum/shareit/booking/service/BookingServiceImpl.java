@@ -3,6 +3,8 @@ package ru.practicum.shareit.booking.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.Booking;
 import ru.practicum.shareit.booking.dto.BookingCreateDto;
@@ -17,12 +19,14 @@ import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.mapper.UserMapper;
 import ru.practicum.shareit.user.service.UserService;
+import ru.practicum.shareit.utils.PaginationUtils;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
@@ -83,12 +87,21 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
+    public List<BookingExtendedDto> getBookings(Integer bookerId, String state, Integer from, Integer size) {
+        PageRequest pageRequest = PaginationUtils.createPageRequest(from, size, Sort.by("start").descending());
+
+        return getBookingsStream(bookerId, state, pageRequest)
+                .map(BookingMapper::toBookingExtendedDto)
+                .collect(Collectors.toList());
+
+    }
+
+    @Override
     public List<BookingExtendedDto> getBookings(Integer bookerId, String state) {
         User booker = UserMapper.toUser(userService.getUser(bookerId));
 
         if (state == null || state.equals(Booking.TimeBookingState.ALL.name())) {
-            return bookingRepository.findBookingsByBookerIsOrderByStartDesc(booker)
-                    .stream()
+            return bookingRepository.findBookingsByBookerIsOrderByStartDesc(booker).stream()
                     .map(BookingMapper::toBookingExtendedDto)
                     .collect(Collectors.toList());
         }
@@ -120,6 +133,79 @@ public class BookingServiceImpl implements BookingService {
                     .collect(Collectors.toList());
         }
 
+        throw new ValidationException("Unknown state: " + state);
+    }
+
+    private Stream<Booking> getBookingsStream(Integer bookerId, String state, PageRequest pageRequest) {
+        User booker = UserMapper.toUser(userService.getUser(bookerId));
+        if (state == null || state.equals(Booking.TimeBookingState.ALL.name())) {
+            return pageRequest == null
+                    ? bookingRepository.findBookingsByBookerIsOrderByStartDesc(booker).stream()
+                    : bookingRepository.findBookingsByBookerIsOrderByStartDesc(booker, pageRequest).stream();
+        }
+        if (state.equals(Booking.TimeBookingState.FUTURE.name())) {
+            return pageRequest == null
+                    ? bookingRepository.findBookingsByBookerIsAndStartIsAfterOrderByStartDesc(booker, LocalDateTime.now()).stream()
+                    : bookingRepository.findBookingsByBookerIsAndStartIsAfterOrderByStartDesc(booker, LocalDateTime.now(), pageRequest).stream();
+        }
+        if (state.equals(Booking.TimeBookingState.CURRENT.name())) {
+            return pageRequest == null
+                    ? bookingRepository.findBookingsByBookerIsAndStartBeforeAndEndAfterOrderByStartDesc(booker, LocalDateTime.now(), LocalDateTime.now()).stream()
+                    : bookingRepository.findBookingsByBookerIsAndStartBeforeAndEndAfterOrderByStartDesc(booker, LocalDateTime.now(), LocalDateTime.now(), pageRequest).stream();
+        }
+
+        if (state.equals(Booking.TimeBookingState.PAST.name())) {
+            return pageRequest == null
+                    ? bookingRepository.findBookingsByBookerIsAndEndBeforeOrderByStartDesc(booker, LocalDateTime.now()).stream()
+                    : bookingRepository.findBookingsByBookerIsAndEndBeforeOrderByStartDesc(booker, LocalDateTime.now(), pageRequest).stream();
+        }
+        if (Arrays.stream(Booking.BookingState.values()).anyMatch(bookingState -> bookingState.name().equals(state))) {
+            return pageRequest == null
+                    ? bookingRepository.findBookingsByBookerIsAndStatusIsOrderByStartDesc(booker, Booking.BookingState.valueOf(state)).stream()
+                    : bookingRepository.findBookingsByBookerIsAndStatusIsOrderByStartDesc(booker, Booking.BookingState.valueOf(state), pageRequest).stream();
+        }
+        throw new ValidationException("Unknown state: " + state);
+    }
+
+    @Override
+    public List<BookingExtendedDto> getOwnersBookings(Integer userId, String state, Integer from, Integer size) {
+        PageRequest pageRequest = PaginationUtils.createPageRequest(from, size, Sort.by("start").descending());
+
+        return getOwnersBookingsStream(userId, state, pageRequest)
+                .map(BookingMapper::toBookingExtendedDto)
+                .collect(Collectors.toList());
+
+
+    }
+
+    private Stream<Booking> getOwnersBookingsStream(Integer userId, String state, PageRequest pageRequest) {
+        User owner = UserMapper.toUser(userService.getUser(userId));
+        if (state == null || state.equals(Booking.TimeBookingState.ALL.name())) {
+            return pageRequest == null
+                    ? bookingRepository.findBookingsByItemOwnerIsOrderByStartDesc(owner).stream()
+                    : bookingRepository.findBookingsByItemOwnerIsOrderByStartDesc(owner, pageRequest).stream();
+        }
+        if (state.equals(Booking.TimeBookingState.FUTURE.name())) {
+            return pageRequest == null
+                    ? bookingRepository.findBookingsByItemOwnerAndStartAfterOrderByStartDesc(owner, LocalDateTime.now()).stream()
+                    : bookingRepository.findBookingsByItemOwnerAndStartAfterOrderByStartDesc(owner, LocalDateTime.now(), pageRequest).stream();
+        }
+        if (state.equals(Booking.TimeBookingState.CURRENT.name())) {
+            return pageRequest == null
+                    ? bookingRepository.findBookingsByItemOwnerIsAndStartBeforeAndEndAfterOrderByStartDesc(owner, LocalDateTime.now(), LocalDateTime.now()).stream()
+                    : bookingRepository.findBookingsByItemOwnerIsAndStartBeforeAndEndAfterOrderByStartDesc(owner, LocalDateTime.now(), LocalDateTime.now(), pageRequest).stream();
+        }
+
+        if (state.equals(Booking.TimeBookingState.PAST.name())) {
+            return pageRequest == null
+                    ? bookingRepository.findBookingsByItemOwnerAndEndBeforeOrderByStartDesc(owner, LocalDateTime.now()).stream()
+                    : bookingRepository.findBookingsByItemOwnerAndEndBeforeOrderByStartDesc(owner, LocalDateTime.now(), pageRequest).stream();
+        }
+        if (Arrays.stream(Booking.BookingState.values()).anyMatch(bookingState -> bookingState.name().equals(state))) {
+            return pageRequest == null
+                    ? bookingRepository.findBookingsByItemOwnerIsAndStatusIsOrderByStartDesc(owner, Booking.BookingState.valueOf(state)).stream()
+                    : bookingRepository.findBookingsByItemOwnerIsAndStatusIsOrderByStartDesc(owner, Booking.BookingState.valueOf(state), pageRequest).stream();
+        }
         throw new ValidationException("Unknown state: " + state);
     }
 

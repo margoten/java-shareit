@@ -19,15 +19,6 @@ public class BookingMapper {
         );
     }
 
-    public static BookingDto toSimpleBookingDto(Booking booking) {
-        return booking == null
-                ? null
-                : new BookingDto(
-                booking.getId(),
-                booking.getBooker() == null ? null : booking.getBooker().getId()
-        );
-    }
-
     public static Booking toBooking(BookingCreateDto bookingDto) {
         return Booking.builder()
                 .start(bookingDto.getStart())

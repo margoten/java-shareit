@@ -3,6 +3,8 @@ package ru.practicum.shareit.item.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.Booking;
 import ru.practicum.shareit.booking.dto.BookingExtendedDto;
@@ -18,9 +20,13 @@ import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.CommentRepository;
 import ru.practicum.shareit.item.repository.ItemRepository;
+import ru.practicum.shareit.request.model.ItemRequest;
+import ru.practicum.shareit.request.dto.ItemRequestDto;
+import ru.practicum.shareit.request.mapper.ItemRequestMapper;
 import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.mapper.UserMapper;
 import ru.practicum.shareit.user.service.UserService;
+import ru.practicum.shareit.utils.PaginationUtils;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
@@ -28,6 +34,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
@@ -39,11 +46,14 @@ public class ItemServiceImpl implements ItemService {
     private final BookingService bookingService;
 
     @Override
-    public ItemDto createItem(ItemDto itemDto, Integer ownerId) {
+    public ItemDto createItem(ItemDto itemDto, ItemRequestDto itemRequestDto, Integer ownerId) {
         validationItem(itemDto);
         User owner = UserMapper.toUser(userService.getUser(ownerId));
         Item item = ItemMapper.toItem(itemDto);
         item.setOwner(owner);
+        if (itemRequestDto != null) {
+            item.setRequest(ItemRequestMapper.toItemRequest(itemRequestDto, userService.getUser(itemRequestDto.getRequestorId())));
+        }
         return ItemMapper.toItemDto(itemRepository.save(item));
     }
 
@@ -73,15 +83,14 @@ public class ItemServiceImpl implements ItemService {
     public ItemExtendedDto getItem(Integer id, Integer userId) {
         Item item = itemRepository.findById(id).orElseThrow(() ->
                 new NotFoundException("Товара с id = " + id + " не существует."));
-        Map<Integer, List<CommentDto>> comments = getAllComments()
-                .stream().collect(Collectors.groupingBy(CommentDto::getItemId));
+        List<CommentDto> comments = getComments(id);
 
         List<BookingExtendedDto> bookings = bookingService.getBookingsByItem(item.getId(), userId);
 
         return ItemMapper.toItemExtendedDto(item,
                 getLastItemBooking(bookings),
                 getNextItemBooking(bookings),
-                comments.get(item.getId()));
+                comments);
     }
 
     @Override
@@ -90,7 +99,7 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public List<ItemExtendedDto> getItems(Integer ownerId) {
+    public List<ItemExtendedDto> getItems(Integer ownerId, Integer from, Integer size) {
         if (ownerId == null) {
             throw new ValidationException("Не заполненное поле владельца");
         }
@@ -100,22 +109,27 @@ public class ItemServiceImpl implements ItemService {
         Map<Integer, List<BookingExtendedDto>> bookings = bookingService.getOwnersBookings(ownerId, null)
                 .stream()
                 .collect(Collectors.groupingBy((BookingExtendedDto bookingExtendedDto) -> bookingExtendedDto.getItem().getId()));
-        return itemRepository.findAllByOwner_IdIs(ownerId)
-                .stream()
-                .map(item -> ItemMapper.toItemExtendedDto(item,
-                        getLastItemBooking(bookings.get(item.getId())),
-                        getNextItemBooking(bookings.get(item.getId())),
-                        comments.get(item.getId())))
+        PageRequest pageRequest = PaginationUtils.createPageRequest(from, size, Sort.by("id").ascending());
+        Stream<Item> itemStream = pageRequest == null
+                ? itemRepository.findAllByOwner_IdIs(ownerId).stream()
+                : itemRepository.findAllByOwner_IdIs(ownerId, pageRequest).stream();
+        return itemStream.map(item -> ItemMapper.toItemExtendedDto(item,
+                getLastItemBooking(bookings.get(item.getId())),
+                getNextItemBooking(bookings.get(item.getId())),
+                comments.get(item.getId())))
                 .collect(Collectors.toList());
     }
 
     @Override
-    public List<ItemDto> searchItems(String text, Integer ownerId) {
+    public List<ItemDto> searchItems(String text, Integer ownerId, Integer from, Integer size) {
         if (text.isBlank()) {
             return Collections.emptyList();
         }
-        return itemRepository.search(text)
-                .stream()
+        PageRequest pageRequest = PaginationUtils.createPageRequest(from, size, Sort.by("id").ascending());
+        Stream<Item> itemStream = pageRequest == null
+                ? itemRepository.search(text).stream()
+                : itemRepository.search(text, pageRequest).stream();
+        return itemStream
                 .map(ItemMapper::toItemDto)
                 .collect(Collectors.toList());
     }
@@ -144,8 +158,15 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public List<CommentDto> getComments(Integer itemId) {
-        // Item item = getItemFromDB(itemId);
         return commentRepository.findCommentByItem_IdIsOrderByCreated(itemId)
+                .stream()
+                .map(CommentMapper::toCommentDto)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<CommentDto> getItemsComments(List<Integer> itemIds) {
+        return commentRepository.findCommentByItem_IdInOrderByCreated(itemIds)
                 .stream()
                 .map(CommentMapper::toCommentDto)
                 .collect(Collectors.toList());
@@ -156,6 +177,22 @@ public class ItemServiceImpl implements ItemService {
         return commentRepository.findAll()
                 .stream()
                 .map(CommentMapper::toCommentDto)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<ItemDto> getItemsByRequestId(Integer requestId) {
+        return itemRepository.findAllByRequest_IdIs(requestId)
+                .stream()
+                .map(ItemMapper::toItemDto)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<ItemDto> getItemsByRequests(List<ItemRequest> requests) {
+        return itemRepository.findAllByRequestIn(requests)
+                .stream()
+                .map(ItemMapper::toItemDto)
                 .collect(Collectors.toList());
     }
 
