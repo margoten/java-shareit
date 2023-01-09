@@ -7,6 +7,9 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import ru.practicum.shareit.error.ConflictException;
+import ru.practicum.shareit.error.NotFoundException;
+import ru.practicum.shareit.error.ValidationException;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.service.UserService;
 
@@ -19,7 +22,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -57,10 +59,10 @@ class UserControllerTest {
         when(userService.createUser(any(UserDto.class)))
                 .thenReturn(userDto);
         mvc.perform(post("/users")
-                .content(mapper.writeValueAsString(userDto))
-                .characterEncoding(StandardCharsets.UTF_8)
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON))
+                        .content(mapper.writeValueAsString(userDto))
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(userDto.getId()), Integer.class))
                 .andExpect(jsonPath("$.name", is(userDto.getName())))
@@ -68,14 +70,41 @@ class UserControllerTest {
     }
 
     @Test
+    void createUserWithConflictException() throws Exception {
+        when(userService.createUser(any(UserDto.class)))
+                .thenThrow(ConflictException.class);
+
+        mvc.perform(post("/users")
+                        .content(mapper.writeValueAsString(userDto))
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isConflict());
+    }
+
+    @Test
+    void createUserWithValidationException() throws Exception {
+        when(userService.createUser(any(UserDto.class)))
+                .thenThrow(ValidationException.class);
+
+        mvc.perform(post("/users")
+                        .content(mapper.writeValueAsString(userDto))
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
+    }
+
+
+    @Test
     void updateUser() throws Exception {
         when(userService.updateUser(any(), anyInt()))
                 .thenReturn(userDto);
         mvc.perform(patch("/users/{userId}", 1)
-                .content(mapper.writeValueAsString(userDto))
-                .characterEncoding(StandardCharsets.UTF_8)
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON))
+                        .content(mapper.writeValueAsString(userDto))
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(userDto.getId()), Integer.class))
                 .andExpect(jsonPath("$.name", is(userDto.getName())))
@@ -87,11 +116,7 @@ class UserControllerTest {
         when(userService.getUser(any()))
                 .thenReturn(userDto);
 
-        mvc.perform(get("/users/{userId}", 1)
-                .content(mapper.writeValueAsString(userDto))
-                .characterEncoding(StandardCharsets.UTF_8)
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON))
+        mvc.perform(get("/users/{userId}", 1))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(userDto.getId()), Integer.class))
                 .andExpect(jsonPath("$.name", is(userDto.getName())))
@@ -99,10 +124,19 @@ class UserControllerTest {
     }
 
     @Test
+    void getUserWithNotFoundException() throws Exception {
+        when(userService.getUser(any()))
+                .thenThrow(NotFoundException.class);
+
+        mvc.perform(get("/users/{userId}", 1))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
     void deleteUser() throws Exception {
         mvc.perform(delete("/users/{userId}", 1)
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
 
     }

@@ -10,6 +10,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import ru.practicum.shareit.booking.dto.BookingCreateDto;
 import ru.practicum.shareit.booking.dto.BookingExtendedDto;
 import ru.practicum.shareit.booking.service.BookingService;
+import ru.practicum.shareit.error.NotFoundException;
+import ru.practicum.shareit.error.ValidationException;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemExtendedDto;
 import ru.practicum.shareit.item.service.ItemService;
@@ -85,6 +87,19 @@ class BookingControllerTest {
     }
 
     @Test
+    void getBookingsWithValidationException() throws Exception {
+        when(bookingService.getBookings(anyInt(), anyString(), anyInt(), anyInt()))
+                .thenThrow(ValidationException.class);
+
+        mvc.perform(get("/bookings")
+                        .header("X-Sharer-User-Id", 1)
+                        .param("state", "All")
+                        .param("from", "0")
+                        .param("size", "1"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
     void getOwnerBookings() throws Exception {
         when(bookingService.getOwnersBookings(anyInt(), anyString(), anyInt(), anyInt()))
                 .thenReturn(List.of(bookingExtendedDto));
@@ -105,6 +120,19 @@ class BookingControllerTest {
     }
 
     @Test
+    void getOwnerBookingsWithValidationException() throws Exception {
+        when(bookingService.getOwnersBookings(anyInt(), anyString(), anyInt(), anyInt()))
+                .thenThrow(ValidationException.class);
+
+        mvc.perform(get("/bookings/owner")
+                        .header("X-Sharer-User-Id", 1)
+                        .param("state", "All")
+                        .param("from", "0")
+                        .param("size", "1"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
     void createBooking() throws Exception{
         when(bookingService.createBooking(any(), any(), anyInt()))
                 .thenReturn(bookingExtendedDto);
@@ -115,7 +143,6 @@ class BookingControllerTest {
                 .characterEncoding(StandardCharsets.UTF_8)
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON))
-                .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(bookingExtendedDto.getId()), Integer.class))
                 .andExpect(jsonPath("$.status", is(bookingExtendedDto.getStatus())))
@@ -123,6 +150,33 @@ class BookingControllerTest {
                 .andExpect(jsonPath("$.end", is(bookingExtendedDto.getEnd().toString())))
                 .andExpect(jsonPath("$.item", notNullValue()))
                 .andExpect(jsonPath("$.booker", notNullValue()));
+    }
+
+    @Test
+    void createBookingWithNotFoundException() throws Exception{
+        when(bookingService.createBooking(any(), any(), anyInt()))
+                .thenThrow(NotFoundException.class);
+
+        mvc.perform(post("/bookings")
+                        .header("X-Sharer-User-Id", 1)
+                        .content(mapper.writeValueAsString(bookingCreateDto))
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound());
+    }
+    @Test
+    void createBookingWithValidationException() throws Exception{
+        when(bookingService.createBooking(any(), any(), anyInt()))
+                .thenThrow(ValidationException.class);
+
+        mvc.perform(post("/bookings")
+                        .header("X-Sharer-User-Id", 1)
+                        .content(mapper.writeValueAsString(bookingCreateDto))
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
     }
 
     @Test
@@ -148,6 +202,38 @@ class BookingControllerTest {
     }
 
     @Test
+    void approveBookingWithValidationException() throws Exception {
+        when(bookingService.approveBooking(anyInt(), anyBoolean(), anyInt()))
+                .thenThrow(ValidationException.class);
+
+
+        mvc.perform(patch("/bookings/{bookingId}", 1)
+                        .header("X-Sharer-User-Id", 1)
+                        .param("approved", "true")
+                        .content(mapper.writeValueAsString(bookingExtendedDto))
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void approveBookingWithNotFoundException() throws Exception {
+        when(bookingService.approveBooking(anyInt(), anyBoolean(), anyInt()))
+                .thenThrow(NotFoundException.class);
+
+
+        mvc.perform(patch("/bookings/{bookingId}", 1)
+                        .header("X-Sharer-User-Id", 1)
+                        .param("approved", "true")
+                        .content(mapper.writeValueAsString(bookingExtendedDto))
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
     void getBooking() throws Exception{
         when(bookingService.getBooking(anyInt(), anyInt()))
                 .thenReturn(bookingExtendedDto);
@@ -161,5 +247,15 @@ class BookingControllerTest {
                 .andExpect(jsonPath("$.end", is(bookingExtendedDto.getEnd().toString())))
                 .andExpect(jsonPath("$.item", notNullValue()))
                 .andExpect(jsonPath("$.booker", notNullValue()));
+    }
+
+    @Test
+    void getBookingWithNotFoundException() throws Exception{
+        when(bookingService.getBooking(anyInt(), anyInt()))
+                .thenThrow(NotFoundException.class);
+
+        mvc.perform(get("/bookings/{bookingId}", 1)
+                        .header("X-Sharer-User-Id", 1))
+                .andExpect(status().isNotFound());
     }
 }

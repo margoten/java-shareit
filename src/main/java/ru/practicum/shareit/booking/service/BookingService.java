@@ -10,6 +10,7 @@ public interface BookingService {
     BookingExtendedDto getBooking(Integer id, Integer userId);
 
     List<BookingExtendedDto> getBookings(Integer bookerId, String state, Integer from, Integer size);
+
     List<BookingExtendedDto> getBookings(Integer bookerId, String state);
 
     BookingExtendedDto createBooking(BookingCreateDto booking, ItemExtendedDto itemDto, Integer bookerId);
@@ -21,7 +22,6 @@ public interface BookingService {
     List<BookingExtendedDto> getOwnersBookings(Integer userId, String state);
 
     List<BookingExtendedDto> getBookingsByItem(Integer itemId, Integer userId);
-
 
 
 }

@@ -7,6 +7,8 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import ru.practicum.shareit.error.NotFoundException;
+import ru.practicum.shareit.error.ValidationException;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 import ru.practicum.shareit.request.service.ItemRequestService;
 import ru.practicum.shareit.user.UserController;
@@ -61,6 +63,15 @@ class ItemRequestControllerTest {
     }
 
     @Test
+    void getItemRequestsWithNotFoundException() throws Exception {
+        when(itemRequestService.getItemRequests(anyInt()))
+                .thenThrow(NotFoundException.class);
+
+        mvc.perform(get("/requests")
+                        .header("X-Sharer-User-Id", 1))
+                .andExpect(status().isNotFound());
+    }
+    @Test
     void getAllItemRequests() throws Exception {
         when(itemRequestService.getAllItemRequests(anyInt(), anyInt(), anyInt()))
                 .thenReturn(List.of(itemRequestDto));
@@ -98,6 +109,19 @@ class ItemRequestControllerTest {
     }
 
     @Test
+    void createItemRequestWithValidationException() throws Exception{
+        when(itemRequestService.createItemRequest(any(), anyInt()))
+                .thenThrow(ValidationException.class);
+
+        mvc.perform(post("/requests")
+                        .header("X-Sharer-User-Id", 1)
+                        .content(mapper.writeValueAsString(itemRequestDto))
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
+    }
+    @Test
     void getItemRequest() throws Exception{
         when(itemRequestService.getItemRequest(anyInt(), anyInt()))
                 .thenReturn(itemRequestDto);
@@ -110,5 +134,14 @@ class ItemRequestControllerTest {
                 .andExpect(jsonPath("$.created", is(itemRequestDto.getCreated().toString())))
                 .andExpect(jsonPath("$.requestorId", is(itemRequestDto.getRequestorId())))
                 .andExpect(jsonPath("$.items", nullValue()));
+    }
+    @Test
+    void getItemRequestWithNotFoundException() throws Exception{
+        when(itemRequestService.getItemRequest(anyInt(), anyInt()))
+                .thenThrow(NotFoundException.class);
+
+        mvc.perform(get("/requests/{requestId}", 1)
+                        .header("X-Sharer-User-Id", 1))
+                .andExpect(status().isNotFound());
     }
 }

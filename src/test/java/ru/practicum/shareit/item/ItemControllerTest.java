@@ -8,11 +8,12 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import ru.practicum.shareit.error.NotFoundException;
+import ru.practicum.shareit.error.ValidationException;
 import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemExtendedDto;
 import ru.practicum.shareit.item.service.ItemService;
-import ru.practicum.shareit.request.dto.ItemRequestDto;
 import ru.practicum.shareit.request.service.ItemRequestService;
 
 import java.nio.charset.StandardCharsets;
@@ -68,9 +69,9 @@ class ItemControllerTest {
                 .thenReturn(List.of(itemExtendedDto));
 
         mvc.perform(get("/items")
-                .header("X-Sharer-User-Id", 1)
-                .param("from", "0")
-                .param("size", "1"))
+                        .header("X-Sharer-User-Id", 1)
+                        .param("from", "0")
+                        .param("size", "1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
                 .andExpect(jsonPath("$[0].id", is(itemExtendedDto.getId()), Integer.class))
@@ -84,10 +85,10 @@ class ItemControllerTest {
                 .thenReturn(List.of(itemDto));
 
         mvc.perform(get("/items/search")
-                .header("X-Sharer-User-Id", 1)
-                .param("text", "")
-                .param("from", "0")
-                .param("size", "1"))
+                        .header("X-Sharer-User-Id", 1)
+                        .param("text", "")
+                        .param("from", "0")
+                        .param("size", "1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
                 .andExpect(jsonPath("$[0].id", is(itemDto.getId()), Integer.class))
@@ -101,11 +102,11 @@ class ItemControllerTest {
                 .thenReturn(itemDto);
 
         mvc.perform(post("/items")
-                .header("X-Sharer-User-Id", 1)
-                .content(mapper.writeValueAsString(itemDto))
-                .characterEncoding(StandardCharsets.UTF_8)
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON))
+                        .header("X-Sharer-User-Id", 1)
+                        .content(mapper.writeValueAsString(itemDto))
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(itemDto.getId()), Integer.class))
                 .andExpect(jsonPath("$.name", is(itemDto.getName())))
@@ -113,19 +114,47 @@ class ItemControllerTest {
     }
 
     @Test
+    void createItemWithValidationException() throws Exception {
+        when(itemService.createItem(any(), any(), anyInt()))
+                .thenThrow(ValidationException.class);
+
+        mvc.perform(post("/items")
+                        .header("X-Sharer-User-Id", 1)
+                        .content(mapper.writeValueAsString(itemDto))
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
     void updateItem() throws Exception {
         when(itemService.updateItem(any(), anyInt()))
                 .thenReturn(itemDto);
         mvc.perform(patch("/items/{itemId}", 1)
-                .header("X-Sharer-User-Id", 1)
-                .content(mapper.writeValueAsString(itemDto))
-                .characterEncoding(StandardCharsets.UTF_8)
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON))
+                        .header("X-Sharer-User-Id", 1)
+                        .content(mapper.writeValueAsString(itemDto))
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(itemDto.getId()), Integer.class))
                 .andExpect(jsonPath("$.name", is(itemDto.getName())))
                 .andExpect(jsonPath("$.description", is(itemDto.getDescription())));
+    }
+
+    @Test
+    void updateItemWithNotFoundException() throws Exception {
+        when(itemService.updateItem(any(), anyInt()))
+                .thenThrow(NotFoundException.class);
+
+        mvc.perform(patch("/items/{itemId}", 1)
+                        .header("X-Sharer-User-Id", 1)
+                        .content(mapper.writeValueAsString(itemDto))
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound());
     }
 
     @Test
@@ -134,7 +163,7 @@ class ItemControllerTest {
                 .thenReturn(itemExtendedDto);
 
         mvc.perform(get("/items/{itemId}", 1)
-                .header("X-Sharer-User-Id", 1))
+                        .header("X-Sharer-User-Id", 1))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(itemExtendedDto.getId()), Integer.class))
                 .andExpect(jsonPath("$.name", is(itemExtendedDto.getName())))
@@ -142,10 +171,20 @@ class ItemControllerTest {
     }
 
     @Test
+    void getItemWithNotFoundException() throws Exception {
+        when(itemService.getItem(any(), anyInt()))
+                .thenThrow(NotFoundException.class);
+
+        mvc.perform(get("/items/{itemId}", 1)
+                        .header("X-Sharer-User-Id", 1))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
     void deleteItem() throws Exception {
         mvc.perform(delete("/items/{itemId}", 1)
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
     }
 
@@ -154,14 +193,27 @@ class ItemControllerTest {
         when(itemService.createComment(any(CommentDto.class), anyInt(), anyInt()))
                 .thenReturn(commentDto);
         mvc.perform(post("/items/{itemId}/comment", 1)
-                .header("X-Sharer-User-Id", 1)
-                .content(mapper.writeValueAsString(commentDto))
-                .characterEncoding(StandardCharsets.UTF_8)
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON))
+                        .header("X-Sharer-User-Id", 1)
+                        .content(mapper.writeValueAsString(commentDto))
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(commentDto.getId()), Integer.class))
                 .andExpect(jsonPath("$.text", is(commentDto.getText())))
                 .andExpect(jsonPath("$.authorName", is(commentDto.getAuthorName())));
+    }
+
+    @Test
+    void createItemCommentWithValidationExceprion() throws Exception {
+        when(itemService.createComment(any(CommentDto.class), anyInt(), anyInt()))
+                .thenThrow(ValidationException.class);
+        mvc.perform(post("/items/{itemId}/comment", 1)
+                        .header("X-Sharer-User-Id", 1)
+                        .content(mapper.writeValueAsString(commentDto))
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
     }
 }

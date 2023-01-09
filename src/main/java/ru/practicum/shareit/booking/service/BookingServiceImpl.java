@@ -46,6 +46,8 @@ public class BookingServiceImpl implements BookingService {
         }
         User booker = UserMapper.toUser(userService.getUser(bookerId));
         Item item = ItemMapper.toItem(itemDto);
+        User owner = UserMapper.toUser(userService.getUser(itemDto.getOwnerId()));
+        item.setOwner(owner);
 
         validationBooking(bookingCreateDto);
 
