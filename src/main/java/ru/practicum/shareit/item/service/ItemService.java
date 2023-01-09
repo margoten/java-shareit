@@ -3,7 +3,6 @@ package ru.practicum.shareit.item.service;
 import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemExtendedDto;
-import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 
 import java.util.List;
@@ -31,5 +30,5 @@ public interface ItemService {
 
     List<ItemDto> getItemsByRequestId(Integer requestId);
 
-    List<ItemDto> getItemsByRequests(List<ItemRequest> requests);
+    List<ItemDto> getItemsByRequests(List<Integer> requests);
 }

@@ -32,26 +32,26 @@ class BookingServiceImplTest {
     private final UserService userService;
     private final ItemService itemService;
     private UserDto itemOwner;
-    private ItemExtendedDto itemExtendedDto;
+    private ItemDto itemDto;
     private BookingExtendedDto bookingExtendedDto;
 
     @BeforeEach
     void setUp() {
         itemOwner = userService.createUser(new UserDto(null, "Harry", "mail@mail.ru"));
         UserDto bookerOwner = userService.createUser(new UserDto(null, "Booker", "booker@mail.ru"));
-        ItemDto itemDto = itemService.createItem(new ItemDto(null,
+        itemDto = itemService.createItem(new ItemDto(null,
                 "Item",
                 "Description",
                 true, itemOwner.getId(), null), null, itemOwner.getId());
-        itemExtendedDto = new ItemExtendedDto(
-                itemDto.getId(),
+
+        ItemExtendedDto itemExtendedDto = new ItemExtendedDto(itemDto.getId(),
                 itemDto.getName(),
                 itemDto.getDescription(),
-                itemDto.getAvailable(), itemDto.getOwnerId(), itemDto.getRequestId(), null, null, List.of());
+                true, itemOwner.getId(), null, null, null, List.of());
         bookingExtendedDto = bookingService.createBooking(new BookingCreateDto(null,
                 LocalDateTime.now(),
                 LocalDateTime.now().plusHours(1),
-                itemExtendedDto.getId(),
+                itemDto.getId(),
                 bookerOwner.getId(),
                 Booking.BookingState.WAITING.name()), itemExtendedDto, bookerOwner.getId());
     }
@@ -134,10 +134,10 @@ class BookingServiceImplTest {
 
     @Test
     void getBookingsByItem() {
-        List<BookingExtendedDto> returned = bookingService.getBookingsByItem(itemExtendedDto.getId(), itemOwner.getId());
+        List<BookingExtendedDto> returned = bookingService.getBookingsByItem(itemDto.getId(), itemOwner.getId());
         List<Booking> bookings = entityManager.createQuery("Select b from Booking b inner join b.item i where i.owner.id = :ownerId and i.id = :itemId", Booking.class)
                 .setParameter("ownerId", itemOwner.getId())
-                .setParameter("itemId", itemExtendedDto.getId())
+                .setParameter("itemId", itemDto.getId())
                 .getResultList();
         assertThat(returned.size(), equalTo(bookings.size()));
         assertThat(returned.get(0).getId(), equalTo(bookings.get(0).getId()));

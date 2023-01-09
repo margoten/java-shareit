@@ -59,10 +59,10 @@ class UserControllerTest {
         when(userService.createUser(any(UserDto.class)))
                 .thenReturn(userDto);
         mvc.perform(post("/users")
-                        .content(mapper.writeValueAsString(userDto))
-                        .characterEncoding(StandardCharsets.UTF_8)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
+                .content(mapper.writeValueAsString(userDto))
+                .characterEncoding(StandardCharsets.UTF_8)
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(userDto.getId()), Integer.class))
                 .andExpect(jsonPath("$.name", is(userDto.getName())))
@@ -75,10 +75,10 @@ class UserControllerTest {
                 .thenThrow(ConflictException.class);
 
         mvc.perform(post("/users")
-                        .content(mapper.writeValueAsString(userDto))
-                        .characterEncoding(StandardCharsets.UTF_8)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
+                .content(mapper.writeValueAsString(userDto))
+                .characterEncoding(StandardCharsets.UTF_8)
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isConflict());
     }
 
@@ -88,10 +88,10 @@ class UserControllerTest {
                 .thenThrow(ValidationException.class);
 
         mvc.perform(post("/users")
-                        .content(mapper.writeValueAsString(userDto))
-                        .characterEncoding(StandardCharsets.UTF_8)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
+                .content(mapper.writeValueAsString(userDto))
+                .characterEncoding(StandardCharsets.UTF_8)
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest());
     }
 
@@ -101,10 +101,10 @@ class UserControllerTest {
         when(userService.updateUser(any(), anyInt()))
                 .thenReturn(userDto);
         mvc.perform(patch("/users/{userId}", 1)
-                        .content(mapper.writeValueAsString(userDto))
-                        .characterEncoding(StandardCharsets.UTF_8)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
+                .content(mapper.writeValueAsString(userDto))
+                .characterEncoding(StandardCharsets.UTF_8)
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(userDto.getId()), Integer.class))
                 .andExpect(jsonPath("$.name", is(userDto.getName())))
@@ -135,8 +135,8 @@ class UserControllerTest {
     @Test
     void deleteUser() throws Exception {
         mvc.perform(delete("/users/{userId}", 1)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
 
     }

@@ -11,17 +11,14 @@ import ru.practicum.shareit.error.NotFoundException;
 import ru.practicum.shareit.error.ValidationException;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 import ru.practicum.shareit.request.service.ItemRequestService;
-import ru.practicum.shareit.user.UserController;
-import ru.practicum.shareit.user.dto.UserDto;
-import ru.practicum.shareit.user.service.UserService;
 
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.hamcrest.Matchers.*;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -43,7 +40,7 @@ class ItemRequestControllerTest {
             1,
             "Some text",
             1,
-            LocalDateTime.of(2023, 1,1,0,1,1),
+            LocalDateTime.of(2023, 1, 1, 0, 1, 1),
             null);
 
     @Test
@@ -68,9 +65,10 @@ class ItemRequestControllerTest {
                 .thenThrow(NotFoundException.class);
 
         mvc.perform(get("/requests")
-                        .header("X-Sharer-User-Id", 1))
+                .header("X-Sharer-User-Id", 1))
                 .andExpect(status().isNotFound());
     }
+
     @Test
     void getAllItemRequests() throws Exception {
         when(itemRequestService.getAllItemRequests(anyInt(), anyInt(), anyInt()))
@@ -90,7 +88,7 @@ class ItemRequestControllerTest {
     }
 
     @Test
-    void createItemRequest() throws Exception{
+    void createItemRequest() throws Exception {
         when(itemRequestService.createItemRequest(any(), anyInt()))
                 .thenReturn(itemRequestDto);
 
@@ -109,20 +107,21 @@ class ItemRequestControllerTest {
     }
 
     @Test
-    void createItemRequestWithValidationException() throws Exception{
+    void createItemRequestWithValidationException() throws Exception {
         when(itemRequestService.createItemRequest(any(), anyInt()))
                 .thenThrow(ValidationException.class);
 
         mvc.perform(post("/requests")
-                        .header("X-Sharer-User-Id", 1)
-                        .content(mapper.writeValueAsString(itemRequestDto))
-                        .characterEncoding(StandardCharsets.UTF_8)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
+                .header("X-Sharer-User-Id", 1)
+                .content(mapper.writeValueAsString(itemRequestDto))
+                .characterEncoding(StandardCharsets.UTF_8)
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest());
     }
+
     @Test
-    void getItemRequest() throws Exception{
+    void getItemRequest() throws Exception {
         when(itemRequestService.getItemRequest(anyInt(), anyInt()))
                 .thenReturn(itemRequestDto);
 
@@ -135,13 +134,14 @@ class ItemRequestControllerTest {
                 .andExpect(jsonPath("$.requestorId", is(itemRequestDto.getRequestorId())))
                 .andExpect(jsonPath("$.items", nullValue()));
     }
+
     @Test
-    void getItemRequestWithNotFoundException() throws Exception{
+    void getItemRequestWithNotFoundException() throws Exception {
         when(itemRequestService.getItemRequest(anyInt(), anyInt()))
                 .thenThrow(NotFoundException.class);
 
         mvc.perform(get("/requests/{requestId}", 1)
-                        .header("X-Sharer-User-Id", 1))
+                .header("X-Sharer-User-Id", 1))
                 .andExpect(status().isNotFound());
     }
 }

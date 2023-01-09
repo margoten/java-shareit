@@ -109,6 +109,7 @@ class ItemRequestServiceImplTest {
         assertThat(returned.size(), equalTo(itemRequests.size()));
         assertThat(returned.get(0).getId(), equalTo(itemRequests.get(0).getId()));
     }
+
     @Test
     void getAllItemRequestsByOwner() {
         insertItemRequest();

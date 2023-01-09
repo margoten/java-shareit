@@ -46,7 +46,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     public List<ItemRequestDto> getItemRequests(Integer userId) {
         User user = UserMapper.toUser(userService.getUser(userId));
         List<ItemRequest> itemRequests = itemRequestRepository.findItemRequestByRequestorOrderByCreatedDesc(user);
-        Map<Integer, List<ItemDto>> items = itemService.getItemsByRequests(itemRequests)
+        Map<Integer, List<ItemDto>> items = itemService.getItemsByRequests(itemRequests.stream().map(ItemRequest::getId).collect(Collectors.toList()))
                 .stream()
                 .collect(Collectors.groupingBy(ItemDto::getRequestId));
         return itemRequests
@@ -78,7 +78,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
                     .collect(Collectors.toList());
         }
 
-        Map<Integer, List<ItemDto>> items = itemService.getItemsByRequests(itemRequests)
+        Map<Integer, List<ItemDto>> items = itemService.getItemsByRequests(itemRequests.stream().map(ItemRequest::getId).collect(Collectors.toList()))
                 .stream()
                 .collect(Collectors.groupingBy(ItemDto::getRequestId));
         return itemRequests

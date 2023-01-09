@@ -13,9 +13,7 @@ import ru.practicum.shareit.booking.service.BookingService;
 import ru.practicum.shareit.error.NotFoundException;
 import ru.practicum.shareit.error.ValidationException;
 import ru.practicum.shareit.item.dto.ItemDto;
-import ru.practicum.shareit.item.dto.ItemExtendedDto;
 import ru.practicum.shareit.item.service.ItemService;
-import ru.practicum.shareit.request.service.ItemRequestService;
 import ru.practicum.shareit.user.dto.UserDto;
 
 import java.nio.charset.StandardCharsets;
@@ -23,10 +21,10 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.hamcrest.Matchers.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -46,8 +44,8 @@ class BookingControllerTest {
 
 
     private final BookingExtendedDto bookingExtendedDto = new BookingExtendedDto(1,
-            LocalDateTime.of(2023, 1,1,0,1,1),
-            LocalDateTime.of(2023, 1,1,1,1,1),
+            LocalDateTime.of(2023, 1, 1, 0, 1, 1),
+            LocalDateTime.of(2023, 1, 1, 1, 1, 1),
             new ItemDto(
                     1,
                     "Item1",
@@ -60,8 +58,8 @@ class BookingControllerTest {
             Booking.BookingState.WAITING.name());
 
     private final BookingCreateDto bookingCreateDto = new BookingCreateDto(1,
-            LocalDateTime.of(2023, 1,1,0,1,1),
-            LocalDateTime.of(2023, 1,1,1,1,1),
+            LocalDateTime.of(2023, 1, 1, 0, 1, 1),
+            LocalDateTime.of(2023, 1, 1, 1, 1, 1),
             1,
             1,
             Booking.BookingState.WAITING.name());
@@ -92,10 +90,10 @@ class BookingControllerTest {
                 .thenThrow(ValidationException.class);
 
         mvc.perform(get("/bookings")
-                        .header("X-Sharer-User-Id", 1)
-                        .param("state", "All")
-                        .param("from", "0")
-                        .param("size", "1"))
+                .header("X-Sharer-User-Id", 1)
+                .param("state", "All")
+                .param("from", "0")
+                .param("size", "1"))
                 .andExpect(status().isBadRequest());
     }
 
@@ -125,15 +123,15 @@ class BookingControllerTest {
                 .thenThrow(ValidationException.class);
 
         mvc.perform(get("/bookings/owner")
-                        .header("X-Sharer-User-Id", 1)
-                        .param("state", "All")
-                        .param("from", "0")
-                        .param("size", "1"))
+                .header("X-Sharer-User-Id", 1)
+                .param("state", "All")
+                .param("from", "0")
+                .param("size", "1"))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
-    void createBooking() throws Exception{
+    void createBooking() throws Exception {
         when(bookingService.createBooking(any(), any(), anyInt()))
                 .thenReturn(bookingExtendedDto);
 
@@ -153,29 +151,30 @@ class BookingControllerTest {
     }
 
     @Test
-    void createBookingWithNotFoundException() throws Exception{
+    void createBookingWithNotFoundException() throws Exception {
         when(bookingService.createBooking(any(), any(), anyInt()))
                 .thenThrow(NotFoundException.class);
 
         mvc.perform(post("/bookings")
-                        .header("X-Sharer-User-Id", 1)
-                        .content(mapper.writeValueAsString(bookingCreateDto))
-                        .characterEncoding(StandardCharsets.UTF_8)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
+                .header("X-Sharer-User-Id", 1)
+                .content(mapper.writeValueAsString(bookingCreateDto))
+                .characterEncoding(StandardCharsets.UTF_8)
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound());
     }
+
     @Test
-    void createBookingWithValidationException() throws Exception{
+    void createBookingWithValidationException() throws Exception {
         when(bookingService.createBooking(any(), any(), anyInt()))
                 .thenThrow(ValidationException.class);
 
         mvc.perform(post("/bookings")
-                        .header("X-Sharer-User-Id", 1)
-                        .content(mapper.writeValueAsString(bookingCreateDto))
-                        .characterEncoding(StandardCharsets.UTF_8)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
+                .header("X-Sharer-User-Id", 1)
+                .content(mapper.writeValueAsString(bookingCreateDto))
+                .characterEncoding(StandardCharsets.UTF_8)
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest());
     }
 
@@ -208,12 +207,12 @@ class BookingControllerTest {
 
 
         mvc.perform(patch("/bookings/{bookingId}", 1)
-                        .header("X-Sharer-User-Id", 1)
-                        .param("approved", "true")
-                        .content(mapper.writeValueAsString(bookingExtendedDto))
-                        .characterEncoding(StandardCharsets.UTF_8)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
+                .header("X-Sharer-User-Id", 1)
+                .param("approved", "true")
+                .content(mapper.writeValueAsString(bookingExtendedDto))
+                .characterEncoding(StandardCharsets.UTF_8)
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest());
     }
 
@@ -224,17 +223,17 @@ class BookingControllerTest {
 
 
         mvc.perform(patch("/bookings/{bookingId}", 1)
-                        .header("X-Sharer-User-Id", 1)
-                        .param("approved", "true")
-                        .content(mapper.writeValueAsString(bookingExtendedDto))
-                        .characterEncoding(StandardCharsets.UTF_8)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
+                .header("X-Sharer-User-Id", 1)
+                .param("approved", "true")
+                .content(mapper.writeValueAsString(bookingExtendedDto))
+                .characterEncoding(StandardCharsets.UTF_8)
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound());
     }
 
     @Test
-    void getBooking() throws Exception{
+    void getBooking() throws Exception {
         when(bookingService.getBooking(anyInt(), anyInt()))
                 .thenReturn(bookingExtendedDto);
 
@@ -250,12 +249,12 @@ class BookingControllerTest {
     }
 
     @Test
-    void getBookingWithNotFoundException() throws Exception{
+    void getBookingWithNotFoundException() throws Exception {
         when(bookingService.getBooking(anyInt(), anyInt()))
                 .thenThrow(NotFoundException.class);
 
         mvc.perform(get("/bookings/{bookingId}", 1)
-                        .header("X-Sharer-User-Id", 1))
+                .header("X-Sharer-User-Id", 1))
                 .andExpect(status().isNotFound());
     }
 }

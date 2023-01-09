@@ -20,7 +20,6 @@ import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.CommentRepository;
 import ru.practicum.shareit.item.repository.ItemRepository;
-import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 import ru.practicum.shareit.request.mapper.ItemRequestMapper;
 import ru.practicum.shareit.user.User;
@@ -189,8 +188,8 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public List<ItemDto> getItemsByRequests(List<ItemRequest> requests) {
-        return itemRepository.findAllByRequestIn(requests)
+    public List<ItemDto> getItemsByRequests(List<Integer> requests) {
+        return itemRepository.findAllByRequest_IdIn(requests)
                 .stream()
                 .map(ItemMapper::toItemDto)
                 .collect(Collectors.toList());
