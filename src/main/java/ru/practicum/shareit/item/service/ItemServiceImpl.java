@@ -136,7 +136,7 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public CommentDto createComment(CommentDto commentDto, Integer itemId, Integer userId) {
         if (commentDto.getText() == null || commentDto.getText().isBlank()) {
-            throw new ValidationException("Текс комментария не может быть пустым");
+            throw new ValidationException("Текст комментария не может быть пустым");
         }
 
         Item item = getItemFromDB(itemId);

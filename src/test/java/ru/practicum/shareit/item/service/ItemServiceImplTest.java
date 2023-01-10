@@ -145,8 +145,8 @@ class ItemServiceImplTest {
 
         List<ItemDto> itemsReturned = itemService.searchItems("item", itemDto.getOwnerId(), 0, 2);
         List<Item> items = entityManager.createQuery("select i from Item i " +
-                "where i.available = TRUE and (upper(i.name) like upper(concat('%', :text, '%')) " +
-                "or upper(i.description) like upper(concat('%', :text, '%')))", Item.class)
+                        "where i.available = TRUE and (upper(i.name) like upper(concat('%', :text, '%')) " +
+                        "or upper(i.description) like upper(concat('%', :text, '%')))", Item.class)
                 .setParameter("text", "item")
                 .getResultList();
         assertThat(items.size(), equalTo(itemsReturned.size()));
@@ -162,8 +162,8 @@ class ItemServiceImplTest {
 
         List<ItemDto> itemsReturned = itemService.searchItems("item2", itemDto.getOwnerId(), 0, 2);
         List<Item> items = entityManager.createQuery("select i from Item i " +
-                "where i.available = TRUE and (upper(i.name) like upper(concat('%', :text, '%')) " +
-                "or upper(i.description) like upper(concat('%', :text, '%')))", Item.class)
+                        "where i.available = TRUE and (upper(i.name) like upper(concat('%', :text, '%')) " +
+                        "or upper(i.description) like upper(concat('%', :text, '%')))", Item.class)
                 .setParameter("text", "item2")
                 .getResultList();
         assertThat(items.size(), equalTo(itemsReturned.size()));
@@ -179,8 +179,8 @@ class ItemServiceImplTest {
 
         List<ItemDto> itemsReturned = itemService.searchItems("hello", itemDto.getOwnerId(), 0, 2);
         List<Item> items = entityManager.createQuery("select i from Item i " +
-                "where i.available = TRUE and (upper(i.name) like upper(concat('%', :text, '%')) " +
-                "or upper(i.description) like upper(concat('%', :text, '%')))", Item.class)
+                        "where i.available = TRUE and (upper(i.name) like upper(concat('%', :text, '%')) " +
+                        "or upper(i.description) like upper(concat('%', :text, '%')))", Item.class)
                 .setParameter("text", "hello")
                 .getResultList();
         assertThat(items.size(), equalTo(itemsReturned.size()));

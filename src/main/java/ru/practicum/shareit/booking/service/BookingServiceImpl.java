@@ -72,7 +72,7 @@ public class BookingServiceImpl implements BookingService {
 
         }
         if (!booking.getItem().getOwner().getId().equals(userId) || !booking.getStatus().equals(Booking.BookingState.WAITING)) {
-            throw new ValidationException("Стастус бронирования не может быть обновлен");
+            throw new ValidationException("Статус бронирования не может быть обновлен");
         }
         booking.setStatus(approved ? Booking.BookingState.APPROVED : Booking.BookingState.REJECTED);
         return BookingMapper.toBookingExtendedDto(bookingRepository.save(booking));

@@ -42,7 +42,6 @@ class ItemRepositoryTest {
     @Test
     void searchAllItemsInResult() {
         List<Item> items = itemRepository.search("item");
-
         assertThat(items, containsInAnyOrder(item1, item2));
         assertThat(items, hasSize(2));
     }
@@ -50,7 +49,6 @@ class ItemRepositoryTest {
     @Test
     void searchEmptyItemsInResult() {
         List<Item> items = itemRepository.search("hello");
-
         assertThat(items, empty());
     }
 
@@ -58,7 +56,6 @@ class ItemRepositoryTest {
     void searchOneOfItemsInResult() {
 
         List<Item> items = itemRepository.search("description1");
-
         assertThat(items, hasSize(1));
         assertThat(items, contains(item1));
     }

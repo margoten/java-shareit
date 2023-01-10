@@ -4,7 +4,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import ru.practicum.shareit.booking.dto.BookingDto;
 
-import javax.validation.constraints.NotNull;
 import java.util.List;
 
 @Data
@@ -18,6 +17,5 @@ public class ItemExtendedDto {
     private Integer requestId;
     private BookingDto lastBooking;
     private BookingDto nextBooking;
-    @NotNull
     private List<CommentDto> comments;
 }

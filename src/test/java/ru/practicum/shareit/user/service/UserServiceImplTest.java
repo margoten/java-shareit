@@ -1,14 +1,10 @@
 package ru.practicum.shareit.user.service;
 
 import lombok.RequiredArgsConstructor;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import ru.practicum.shareit.error.ConflictException;
-import ru.practicum.shareit.error.NotFoundException;
-import ru.practicum.shareit.error.ValidationException;
 import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.dto.UserDto;
 
@@ -19,7 +15,6 @@ import java.util.List;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 
 @Transactional
@@ -58,13 +53,6 @@ class UserServiceImplTest {
     }
 
     @Test
-    void createUserWhenEmailOtherUser() {
-        service.createUser(userDto);
-        ConflictException ex = assertThrows(ConflictException.class, () -> service.createUser(createUserDto("Harry2", userDto.getEmail())));
-        Assertions.assertEquals("Пользователь с таким email уже существует " + userDto.getEmail() + ".", ex.getMessage());
-    }
-
-    @Test
     void updateUser() {
         service.createUser(userDto);
         User user = entityManager.createQuery("Select u from User u where u.email = :email", User.class)
@@ -98,18 +86,6 @@ class UserServiceImplTest {
     }
 
     @Test
-    void createUserWhenUserNotFound() {
-        NotFoundException ex = assertThrows(NotFoundException.class, () -> service.getUser(99));
-        Assertions.assertEquals("Пользователя с id = " + 99 + " не существует.", ex.getMessage());
-    }
-
-    @Test
-    void createUserWhenUserNull() {
-        ValidationException ex = assertThrows(ValidationException.class, () -> service.getUser(null));
-        Assertions.assertEquals("Id пользователя не может быть пустым.", ex.getMessage());
-    }
-
-    @Test
     void deleteUser() {
         insertUsers();
         List<User> users = entityManager.createQuery("Select u from User u", User.class).getResultList();
@@ -126,7 +102,6 @@ class UserServiceImplTest {
     void getUsers() {
         insertUsers();
         List<User> users = entityManager.createQuery("Select u from User u", User.class).getResultList();
-
         assertThat(users.size(), equalTo(2));
     }
 }

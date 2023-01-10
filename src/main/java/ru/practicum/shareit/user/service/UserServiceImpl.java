@@ -90,7 +90,7 @@ public class UserServiceImpl implements UserService {
     private void validationUser(UserDto user) {
         if (user.getEmail() == null) {
             log.warn("Email не может быть пустым.");
-            throw new ValidationException("email не может быть пустым.");
+            throw new ValidationException("Email не может быть пустым.");
         }
 
         if (user.getEmail().isBlank() || !user.getEmail().contains("@")) {
