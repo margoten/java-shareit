@@ -15,6 +15,7 @@ import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.mapper.UserMapper;
 import ru.practicum.shareit.user.repository.UserRepository;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -30,7 +31,7 @@ class UserServiceUnitTest {
 
     @BeforeEach
     void setUp() {
-        userDto = new UserDto(null, "harry", "mail@mail.ru");
+        userDto = new UserDto(1, "harry", "mail@mail.ru");
         user = UserMapper.toUser(userDto);
         userService = new UserServiceImpl(userRepository);
     }
@@ -116,6 +117,17 @@ class UserServiceUnitTest {
     }
 
     @Test
+    void updateUserWhenEmailOtherUser() {
+        UserDto update = new UserDto(2, "H", "mail1@mail.ru");
+
+        Mockito.when(userRepository.findById(Mockito.any()))
+                .thenReturn(Optional.ofNullable(UserMapper.toUser(update)));
+        Mockito.when(userRepository.save(Mockito.any()))
+                .thenThrow(ConflictException.class);
+        assertThrows(ConflictException.class, () -> userService.updateUser(userDto, 1));
+    }
+
+    @Test
     void getUserWhenUserNotFound() {
         Mockito.when(userRepository.findById(Mockito.any()))
                 .thenThrow(NotFoundException.class);
@@ -130,14 +142,35 @@ class UserServiceUnitTest {
     }
 
     @Test
-    void getUserWithUserNotFound() {
-        NotFoundException ex = assertThrows(NotFoundException.class, () -> userService.getUser(99));
-        Assertions.assertEquals("Пользователя с id = " + 99 + " не существует.", ex.getMessage());
-    }
-
-    @Test
     void deleteUserWithNullId() {
         ValidationException ex = assertThrows(ValidationException.class, () -> userService.deleteUser(null));
         Assertions.assertEquals("Id пользователя не может быть пустым.", ex.getMessage());
+    }
+
+    @Test
+    void deleteUser() {
+        Mockito.when(userRepository.save(Mockito.any()))
+                .thenReturn(user);
+        UserDto returned = userService.createUser(userDto);
+        userService.deleteUser(returned.getId());
+        Mockito.verify(userRepository, Mockito.times(1))
+                .deleteById(user.getId());
+    }
+
+    @Test
+    void getUsers() {
+        Mockito.when(userRepository.findAll())
+                .thenReturn(List.of(user));
+        List<UserDto> returned = userService.getUsers();
+        Assertions.assertEquals(returned.size(), 1);
+        Assertions.assertEquals(returned.get(0).getId(), user.getId());
+    }
+
+    @Test
+    void getEmptyUsers() {
+        Mockito.when(userRepository.findAll())
+                .thenReturn(List.of());
+        List<UserDto> returned = userService.getUsers();
+        Assertions.assertEquals(returned.size(), 0);
     }
 }

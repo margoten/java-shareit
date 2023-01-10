@@ -131,7 +131,7 @@ class ItemServiceUnitTest {
         Mockito.when(commentRepository.findAll())
                 .thenReturn(List.of());
 
-        Mockito.when(bookingService.getOwnersBookings(anyInt(), any()))
+        Mockito.when(bookingService.getOwnersBookings(anyInt(), any(), any(), any()))
                 .thenReturn(List.of());
 
         Mockito.when(itemRepository.findAllByOwner_IdIs(anyInt()))
@@ -196,7 +196,7 @@ class ItemServiceUnitTest {
                 .thenReturn(java.util.Optional.ofNullable(item));
         Mockito.when(userService.getUser(anyInt()))
                 .thenReturn(userDto);
-        Mockito.when(bookingService.getBookings(anyInt(), anyString()))
+        Mockito.when(bookingService.getBookings(anyInt(), anyString(), any(), any()))
                 .thenReturn(List.of(bookingExtendedDto));
 
         Mockito.when(commentRepository.save(any()))
@@ -217,7 +217,7 @@ class ItemServiceUnitTest {
                 .thenReturn(java.util.Optional.ofNullable(item));
         Mockito.when(userService.getUser(anyInt()))
                 .thenReturn(userDto);
-        Mockito.when(bookingService.getBookings(anyInt(), anyString()))
+        Mockito.when(bookingService.getBookings(anyInt(), anyString(), any(), any()))
                 .thenReturn(List.of());
 
         assertThrows(ValidationException.class,

@@ -21,17 +21,6 @@ public class ItemMapper {
         );
     }
 
-    public static ItemDto toItemDto(ItemExtendedDto itemDto) {
-        return new ItemDto(
-                itemDto.getId(),
-                itemDto.getName(),
-                itemDto.getDescription(),
-                itemDto.getAvailable(),
-                itemDto.getOwnerId(),
-                itemDto.getRequestId()
-        );
-    }
-
     public static ItemExtendedDto toItemExtendedDto(Item item, BookingExtendedDto lastBooking, BookingExtendedDto nextBooking, List<CommentDto> comments) {
         return new ItemExtendedDto(
                 item.getId(),

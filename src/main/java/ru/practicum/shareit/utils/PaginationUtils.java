@@ -10,7 +10,7 @@ public class PaginationUtils {
             return null;
         }
         if (from < 0 || size <= 0) {
-            throw new ValidationException("Некорректное значение дял постраничной загрузки");
+            throw new ValidationException("Некорректное значение для постраничной загрузки");
         }
         return PageRequest.of(from / size, size, sort);
     }

@@ -105,7 +105,7 @@ public class ItemServiceImpl implements ItemService {
         Map<Integer, List<CommentDto>> comments = getAllComments()
                 .stream().collect(Collectors.groupingBy(CommentDto::getItemId));
 
-        Map<Integer, List<BookingExtendedDto>> bookings = bookingService.getOwnersBookings(ownerId, null)
+        Map<Integer, List<BookingExtendedDto>> bookings = bookingService.getOwnersBookings(ownerId, null, null, null)
                 .stream()
                 .collect(Collectors.groupingBy((BookingExtendedDto bookingExtendedDto) -> bookingExtendedDto.getItem().getId()));
         PageRequest pageRequest = PaginationUtils.createPageRequest(from, size, Sort.by("id").ascending());
@@ -142,7 +142,7 @@ public class ItemServiceImpl implements ItemService {
         Item item = getItemFromDB(itemId);
         User user = UserMapper.toUser(userService.getUser(userId));
 
-        List<BookingExtendedDto> bookings = bookingService.getBookings(userId, Booking.TimeBookingState.PAST.name());
+        List<BookingExtendedDto> bookings = bookingService.getBookings(userId, Booking.TimeBookingState.PAST.name(), null, null);
         if (bookings.isEmpty()) {
             throw new ValidationException("Пользователь не может оставлять комментарий ");
         }

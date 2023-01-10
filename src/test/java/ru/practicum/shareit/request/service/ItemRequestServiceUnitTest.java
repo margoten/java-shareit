@@ -7,6 +7,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import ru.practicum.shareit.error.NotFoundException;
+import ru.practicum.shareit.error.ValidationException;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.service.ItemService;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
@@ -18,6 +20,8 @@ import ru.practicum.shareit.user.service.UserService;
 
 import java.time.LocalDateTime;
 import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @ExtendWith(MockitoExtension.class)
 class ItemRequestServiceUnitTest {
@@ -57,6 +61,12 @@ class ItemRequestServiceUnitTest {
     }
 
     @Test
+    void createItemWithEmptyDescription() {
+        ValidationException ex = assertThrows(ValidationException.class, () -> itemRequestService.createItemRequest(new ItemRequestDto(1, "", 1, LocalDateTime.now(), List.of()), 1));
+        Assertions.assertEquals("Запрос не может быть пустым", ex.getMessage());
+    }
+
+    @Test
     void getItemRequests() {
         createItemRequestDto();
 
@@ -67,6 +77,7 @@ class ItemRequestServiceUnitTest {
         Assertions.assertEquals(returned.get(0).getId(), itemRequest.getId());
         Assertions.assertEquals(returned.get(0).getItems().size(), 0);
     }
+
 
     @Test
     void getItemRequestsWithItems() {
@@ -107,6 +118,16 @@ class ItemRequestServiceUnitTest {
         Assertions.assertEquals(returned.getItems().size(), 1);
     }
 
+    @Test
+    void getItemRequestNotFound() {
+        Mockito.when(userService.getUser(Mockito.any()))
+                .thenReturn(userDto);
+        Mockito.when(itemRequestRepository.findById(Mockito.any()))
+                .thenThrow(NotFoundException.class);
+        Mockito.when(itemService.getItemsByRequestId(Mockito.any()))
+                .thenReturn(List.of());
+        assertThrows(NotFoundException.class, () -> itemRequestService.getItemRequest(99, 99));
+    }
 
     @Test
     void getAllItemRequests() {

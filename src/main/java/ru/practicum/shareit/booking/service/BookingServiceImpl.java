@@ -98,46 +98,6 @@ public class BookingServiceImpl implements BookingService {
 
     }
 
-    @Override
-    public List<BookingExtendedDto> getBookings(Integer bookerId, String state) {
-        User booker = UserMapper.toUser(userService.getUser(bookerId));
-
-        if (state == null || state.equals(Booking.TimeBookingState.ALL.name())) {
-            return bookingRepository.findBookingsByBookerIsOrderByStartDesc(booker).stream()
-                    .map(BookingMapper::toBookingExtendedDto)
-                    .collect(Collectors.toList());
-        }
-
-        if (state.equals(Booking.TimeBookingState.FUTURE.name())) {
-            return bookingRepository.findBookingsByBookerIsAndStartIsAfterOrderByStartDesc(booker, LocalDateTime.now())
-                    .stream()
-                    .map(BookingMapper::toBookingExtendedDto)
-                    .collect(Collectors.toList());
-        }
-        if (state.equals(Booking.TimeBookingState.CURRENT.name())) {
-            return bookingRepository.findBookingsByBookerIsAndStartBeforeAndEndAfterOrderByStartDesc(booker, LocalDateTime.now(), LocalDateTime.now())
-                    .stream()
-                    .map(BookingMapper::toBookingExtendedDto)
-                    .collect(Collectors.toList());
-        }
-
-        if (state.equals(Booking.TimeBookingState.PAST.name())) {
-            return bookingRepository.findBookingsByBookerIsAndEndBeforeOrderByStartDesc(booker, LocalDateTime.now())
-                    .stream()
-                    .map(BookingMapper::toBookingExtendedDto)
-                    .collect(Collectors.toList());
-        }
-
-        if (Arrays.stream(Booking.BookingState.values()).anyMatch(bookingState -> bookingState.name().equals(state))) {
-            return bookingRepository.findBookingsByBookerIsAndStatusIsOrderByStartDesc(booker, Booking.BookingState.valueOf(state))
-                    .stream()
-                    .map(BookingMapper::toBookingExtendedDto)
-                    .collect(Collectors.toList());
-        }
-
-        throw new ValidationException("Unknown state: " + state);
-    }
-
     private Stream<Booking> getBookingsStream(Integer bookerId, String state, PageRequest pageRequest) {
         User booker = UserMapper.toUser(userService.getUser(bookerId));
         if (state == null || state.equals(Booking.TimeBookingState.ALL.name())) {
@@ -207,44 +167,6 @@ public class BookingServiceImpl implements BookingService {
             return pageRequest == null
                     ? bookingRepository.findBookingsByItemOwnerIsAndStatusIsOrderByStartDesc(owner, Booking.BookingState.valueOf(state)).stream()
                     : bookingRepository.findBookingsByItemOwnerIsAndStatusIsOrderByStartDesc(owner, Booking.BookingState.valueOf(state), pageRequest).stream();
-        }
-        throw new ValidationException("Unknown state: " + state);
-    }
-
-    @Override
-    public List<BookingExtendedDto> getOwnersBookings(Integer userId, String state) {
-        User owner = UserMapper.toUser(userService.getUser(userId));
-
-        if (state == null || state.equals(Booking.TimeBookingState.ALL.name())) {
-            return bookingRepository.findBookingsByItemOwnerIsOrderByStartDesc(owner)
-                    .stream()
-                    .map(BookingMapper::toBookingExtendedDto)
-                    .collect(Collectors.toList());
-        }
-        if (state.equals(Booking.TimeBookingState.FUTURE.name())) {
-            return bookingRepository.findBookingsByItemOwnerAndStartAfterOrderByStartDesc(owner, LocalDateTime.now())
-                    .stream()
-                    .map(BookingMapper::toBookingExtendedDto)
-                    .collect(Collectors.toList());
-        }
-        if (state.equals(Booking.TimeBookingState.CURRENT.name())) {
-            return bookingRepository.findBookingsByItemOwnerIsAndStartBeforeAndEndAfterOrderByStartDesc(owner, LocalDateTime.now(), LocalDateTime.now())
-                    .stream()
-                    .map(BookingMapper::toBookingExtendedDto)
-                    .collect(Collectors.toList());
-        }
-
-        if (state.equals(Booking.TimeBookingState.PAST.name())) {
-            return bookingRepository.findBookingsByItemOwnerAndEndBeforeOrderByStartDesc(owner, LocalDateTime.now())
-                    .stream()
-                    .map(BookingMapper::toBookingExtendedDto)
-                    .collect(Collectors.toList());
-        }
-        if (Arrays.stream(Booking.BookingState.values()).anyMatch(bookingState -> bookingState.name().equals(state))) {
-            return bookingRepository.findBookingsByItemOwnerIsAndStatusIsOrderByStartDesc(owner, Booking.BookingState.valueOf(state))
-                    .stream()
-                    .map(BookingMapper::toBookingExtendedDto)
-                    .collect(Collectors.toList());
         }
         throw new ValidationException("Unknown state: " + state);
     }
