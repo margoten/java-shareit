@@ -3,8 +3,9 @@ package ru.practicum.shareit.booking.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.Booking;
 import ru.practicum.shareit.booking.dto.BookingCreateDto;
@@ -34,6 +35,7 @@ import java.util.stream.Stream;
 public class BookingServiceImpl implements BookingService {
     private final BookingRepository bookingRepository;
     private final UserService userService;
+    private static final Pageable PAGEABLE_DEFAULT = PaginationUtils.createPageRequest(0, 100, Sort.by("start").descending());
 
     @Override
     public BookingExtendedDto createBooking(BookingCreateDto bookingCreateDto, ItemExtendedDto itemDto, Integer bookerId) {
@@ -90,83 +92,67 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public List<BookingExtendedDto> getBookings(Integer bookerId, String state, Integer from, Integer size) {
-        PageRequest pageRequest = PaginationUtils.createPageRequest(from, size, Sort.by("start").descending());
+        Pageable pageable = from == null || size == null
+                ? PAGEABLE_DEFAULT
+                : PaginationUtils.createPageRequest(from, size, Sort.by("start").descending());
 
-        return getBookingsStream(bookerId, state, pageRequest)
+        return getBookingsStream(bookerId, state, pageable)
                 .map(BookingMapper::toBookingExtendedDto)
                 .collect(Collectors.toList());
 
     }
 
-    private Stream<Booking> getBookingsStream(Integer bookerId, String state, PageRequest pageRequest) {
+    private Stream<Booking> getBookingsStream(Integer bookerId, String state, Pageable pageable) {
         User booker = UserMapper.toUser(userService.getUser(bookerId));
         if (state == null || state.equals(Booking.TimeBookingState.ALL.name())) {
-            return pageRequest == null
-                    ? bookingRepository.findBookingsByBookerIsOrderByStartDesc(booker).stream()
-                    : bookingRepository.findBookingsByBookerIsOrderByStartDesc(booker, pageRequest).stream();
+            return bookingRepository.findBookingsByBookerIsOrderByStartDesc(booker, pageable).stream();
         }
         if (state.equals(Booking.TimeBookingState.FUTURE.name())) {
-            return pageRequest == null
-                    ? bookingRepository.findBookingsByBookerIsAndStartIsAfterOrderByStartDesc(booker, LocalDateTime.now()).stream()
-                    : bookingRepository.findBookingsByBookerIsAndStartIsAfterOrderByStartDesc(booker, LocalDateTime.now(), pageRequest).stream();
+            return bookingRepository.findBookingsByBookerIsAndStartIsAfterOrderByStartDesc(booker, LocalDateTime.now(), pageable).stream();
         }
         if (state.equals(Booking.TimeBookingState.CURRENT.name())) {
-            return pageRequest == null
-                    ? bookingRepository.findBookingsByBookerIsAndStartBeforeAndEndAfterOrderByStartDesc(booker, LocalDateTime.now(), LocalDateTime.now()).stream()
-                    : bookingRepository.findBookingsByBookerIsAndStartBeforeAndEndAfterOrderByStartDesc(booker, LocalDateTime.now(), LocalDateTime.now(), pageRequest).stream();
+            return bookingRepository.findBookingsByBookerIsAndStartBeforeAndEndAfterOrderByStartDesc(booker, LocalDateTime.now(), LocalDateTime.now(), null).stream();
         }
 
         if (state.equals(Booking.TimeBookingState.PAST.name())) {
-            return pageRequest == null
-                    ? bookingRepository.findBookingsByBookerIsAndEndBeforeOrderByStartDesc(booker, LocalDateTime.now()).stream()
-                    : bookingRepository.findBookingsByBookerIsAndEndBeforeOrderByStartDesc(booker, LocalDateTime.now(), pageRequest).stream();
+            return bookingRepository.findBookingsByBookerIsAndEndBeforeOrderByStartDesc(booker, LocalDateTime.now(), pageable).stream();
         }
         if (Arrays.stream(Booking.BookingState.values()).anyMatch(bookingState -> bookingState.name().equals(state))) {
-            return pageRequest == null
-                    ? bookingRepository.findBookingsByBookerIsAndStatusIsOrderByStartDesc(booker, Booking.BookingState.valueOf(state)).stream()
-                    : bookingRepository.findBookingsByBookerIsAndStatusIsOrderByStartDesc(booker, Booking.BookingState.valueOf(state), pageRequest).stream();
+            return bookingRepository.findBookingsByBookerIsAndStatusIsOrderByStartDesc(booker, Booking.BookingState.valueOf(state), pageable).stream();
         }
         throw new ValidationException("Unknown state: " + state);
     }
 
     @Override
     public List<BookingExtendedDto> getOwnersBookings(Integer userId, String state, Integer from, Integer size) {
-        PageRequest pageRequest = PaginationUtils.createPageRequest(from, size, Sort.by("start").descending());
+        Pageable pageable = from == null || size == null
+                ? PAGEABLE_DEFAULT
+                : PaginationUtils.createPageRequest(from, size, Sort.by("start").descending());
 
-        return getOwnersBookingsStream(userId, state, pageRequest)
+        return getOwnersBookingsStream(userId, state, pageable)
                 .map(BookingMapper::toBookingExtendedDto)
                 .collect(Collectors.toList());
 
 
     }
 
-    private Stream<Booking> getOwnersBookingsStream(Integer userId, String state, PageRequest pageRequest) {
+    private Stream<Booking> getOwnersBookingsStream(Integer userId, String state, @PageableDefault(sort = {"start",}, value = 100, direction = Sort.Direction.DESC) Pageable pageable) {
         User owner = UserMapper.toUser(userService.getUser(userId));
         if (state == null || state.equals(Booking.TimeBookingState.ALL.name())) {
-            return pageRequest == null
-                    ? bookingRepository.findBookingsByItemOwnerIsOrderByStartDesc(owner).stream()
-                    : bookingRepository.findBookingsByItemOwnerIsOrderByStartDesc(owner, pageRequest).stream();
+            return bookingRepository.findBookingsByItemOwnerIsOrderByStartDesc(owner, pageable).stream();
         }
         if (state.equals(Booking.TimeBookingState.FUTURE.name())) {
-            return pageRequest == null
-                    ? bookingRepository.findBookingsByItemOwnerAndStartAfterOrderByStartDesc(owner, LocalDateTime.now()).stream()
-                    : bookingRepository.findBookingsByItemOwnerAndStartAfterOrderByStartDesc(owner, LocalDateTime.now(), pageRequest).stream();
+            return bookingRepository.findBookingsByItemOwnerAndStartAfterOrderByStartDesc(owner, LocalDateTime.now(), pageable).stream();
         }
         if (state.equals(Booking.TimeBookingState.CURRENT.name())) {
-            return pageRequest == null
-                    ? bookingRepository.findBookingsByItemOwnerIsAndStartBeforeAndEndAfterOrderByStartDesc(owner, LocalDateTime.now(), LocalDateTime.now()).stream()
-                    : bookingRepository.findBookingsByItemOwnerIsAndStartBeforeAndEndAfterOrderByStartDesc(owner, LocalDateTime.now(), LocalDateTime.now(), pageRequest).stream();
+            return bookingRepository.findBookingsByItemOwnerIsAndStartBeforeAndEndAfterOrderByStartDesc(owner, LocalDateTime.now(), LocalDateTime.now(), pageable).stream();
         }
 
         if (state.equals(Booking.TimeBookingState.PAST.name())) {
-            return pageRequest == null
-                    ? bookingRepository.findBookingsByItemOwnerAndEndBeforeOrderByStartDesc(owner, LocalDateTime.now()).stream()
-                    : bookingRepository.findBookingsByItemOwnerAndEndBeforeOrderByStartDesc(owner, LocalDateTime.now(), pageRequest).stream();
+            return bookingRepository.findBookingsByItemOwnerAndEndBeforeOrderByStartDesc(owner, LocalDateTime.now(), pageable).stream();
         }
         if (Arrays.stream(Booking.BookingState.values()).anyMatch(bookingState -> bookingState.name().equals(state))) {
-            return pageRequest == null
-                    ? bookingRepository.findBookingsByItemOwnerIsAndStatusIsOrderByStartDesc(owner, Booking.BookingState.valueOf(state)).stream()
-                    : bookingRepository.findBookingsByItemOwnerIsAndStatusIsOrderByStartDesc(owner, Booking.BookingState.valueOf(state), pageRequest).stream();
+            return bookingRepository.findBookingsByItemOwnerIsAndStatusIsOrderByStartDesc(owner, Booking.BookingState.valueOf(state), pageable).stream();
         }
         throw new ValidationException("Unknown state: " + state);
     }

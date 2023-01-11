@@ -3,7 +3,7 @@ package ru.practicum.shareit.item.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.Booking;
@@ -33,7 +33,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
@@ -43,6 +42,7 @@ public class ItemServiceImpl implements ItemService {
     private final CommentRepository commentRepository;
     private final UserService userService;
     private final BookingService bookingService;
+    private static final Pageable PAGEABLE_DEFAULT = PaginationUtils.createPageRequest(0, 100, Sort.by("id").ascending());
 
     @Override
     public ItemDto createItem(ItemDto itemDto, ItemRequestDto itemRequestDto, Integer ownerId) {
@@ -108,14 +108,15 @@ public class ItemServiceImpl implements ItemService {
         Map<Integer, List<BookingExtendedDto>> bookings = bookingService.getOwnersBookings(ownerId, null, null, null)
                 .stream()
                 .collect(Collectors.groupingBy((BookingExtendedDto bookingExtendedDto) -> bookingExtendedDto.getItem().getId()));
-        PageRequest pageRequest = PaginationUtils.createPageRequest(from, size, Sort.by("id").ascending());
-        Stream<Item> itemStream = pageRequest == null
-                ? itemRepository.findAllByOwner_IdIs(ownerId).stream()
-                : itemRepository.findAllByOwner_IdIs(ownerId, pageRequest).stream();
-        return itemStream.map(item -> ItemMapper.toItemExtendedDto(item,
-                getLastItemBooking(bookings.get(item.getId())),
-                getNextItemBooking(bookings.get(item.getId())),
-                comments.get(item.getId())))
+        Pageable pageable = from == null || size == null
+                ? PAGEABLE_DEFAULT
+                : PaginationUtils.createPageRequest(from, size, Sort.by("id").ascending());
+        return itemRepository.findAllByOwner_IdIs(ownerId, pageable)
+                .stream()
+                .map(item -> ItemMapper.toItemExtendedDto(item,
+                        getLastItemBooking(bookings.get(item.getId())),
+                        getNextItemBooking(bookings.get(item.getId())),
+                        comments.get(item.getId())))
                 .collect(Collectors.toList());
     }
 
@@ -124,12 +125,11 @@ public class ItemServiceImpl implements ItemService {
         if (text.isBlank()) {
             return Collections.emptyList();
         }
-        PageRequest pageRequest = PaginationUtils.createPageRequest(from, size, Sort.by("id").ascending());
-        Stream<Item> itemStream = pageRequest == null
-                ? itemRepository.search(text).stream()
-                : itemRepository.search(text, pageRequest).stream();
-        return itemStream
-                .map(ItemMapper::toItemDto)
+        Pageable pageable = from == null || size == null
+                ? PAGEABLE_DEFAULT
+                : PaginationUtils.createPageRequest(from, size, Sort.by("id").ascending());
+        return itemRepository.search(text, pageable)
+                .stream().map(ItemMapper::toItemDto)
                 .collect(Collectors.toList());
     }
 

@@ -7,6 +7,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import ru.practicum.shareit.booking.Booking;
 import ru.practicum.shareit.booking.dto.BookingExtendedDto;
 import ru.practicum.shareit.booking.service.BookingService;
@@ -134,8 +136,8 @@ class ItemServiceUnitTest {
         Mockito.when(bookingService.getOwnersBookings(anyInt(), any(), any(), any()))
                 .thenReturn(List.of());
 
-        Mockito.when(itemRepository.findAllByOwner_IdIs(anyInt()))
-                .thenReturn(List.of(item));
+        Mockito.when(itemRepository.findAllByOwner_IdIs(anyInt(), any()))
+                .thenReturn(new PageImpl<>(List.of(item)));
 
         List<ItemExtendedDto> returned = itemService.getItems(userDto.getId(), null, null);
         Assertions.assertEquals(returned.size(), 1);
@@ -148,8 +150,8 @@ class ItemServiceUnitTest {
     void searchItems() {
         createItemDto();
 
-        Mockito.when(itemRepository.search(anyString()))
-                .thenReturn(List.of(item));
+        Mockito.when(itemRepository.search(anyString(), any()))
+                .thenReturn(new PageImpl<>(List.of(item)));
 
         List<ItemDto> returned = itemService.searchItems("item", userDto.getId(), null, null);
         Assertions.assertEquals(returned.size(), 1);
@@ -160,8 +162,8 @@ class ItemServiceUnitTest {
     void searchItemsWithEmptyResult() {
         createItemDto();
 
-        Mockito.when(itemRepository.search(anyString()))
-                .thenReturn(List.of());
+        Mockito.when(itemRepository.search(anyString(), any()))
+                .thenReturn(Page.empty());
 
         List<ItemDto> returned = itemService.searchItems("Hello", userDto.getId(), null, null);
         Assertions.assertEquals(returned.size(), 0);

@@ -7,6 +7,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
 import ru.practicum.shareit.error.NotFoundException;
 import ru.practicum.shareit.error.ValidationException;
 import ru.practicum.shareit.item.dto.ItemDto;
@@ -22,6 +23,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 
 @ExtendWith(MockitoExtension.class)
 class ItemRequestServiceUnitTest {
@@ -45,9 +47,9 @@ class ItemRequestServiceUnitTest {
     }
 
     ItemRequestDto createItemRequestDto() {
-        Mockito.when(userService.getUser(Mockito.any()))
+        Mockito.when(userService.getUser(any()))
                 .thenReturn(userDto);
-        Mockito.when(itemRequestRepository.save(Mockito.any()))
+        Mockito.when(itemRequestRepository.save(any()))
                 .thenReturn(itemRequest);
         return itemRequestService.createItemRequest(itemRequestDto, userDto.getId());
     }
@@ -70,7 +72,7 @@ class ItemRequestServiceUnitTest {
     void getItemRequests() {
         createItemRequestDto();
 
-        Mockito.when(itemRequestRepository.findItemRequestByRequestorOrderByCreatedDesc(Mockito.any()))
+        Mockito.when(itemRequestRepository.findItemRequestByRequestorOrderByCreatedDesc(any()))
                 .thenReturn(List.of(itemRequest));
         List<ItemRequestDto> returned = itemRequestService.getItemRequests(userDto.getId());
         Assertions.assertEquals(returned.size(), 1);
@@ -83,9 +85,9 @@ class ItemRequestServiceUnitTest {
     void getItemRequestsWithItems() {
         createItemRequestDto();
 
-        Mockito.when(itemService.getItemsByRequests(Mockito.any()))
+        Mockito.when(itemService.getItemsByRequests(any()))
                 .thenReturn(List.of(new ItemDto(1, "name", "desr", true, 3, 1)));
-        Mockito.when(itemRequestRepository.findItemRequestByRequestorOrderByCreatedDesc(Mockito.any()))
+        Mockito.when(itemRequestRepository.findItemRequestByRequestorOrderByCreatedDesc(any()))
                 .thenReturn(List.of(itemRequest));
         List<ItemRequestDto> returned = itemRequestService.getItemRequests(userDto.getId());
         Assertions.assertEquals(returned.size(), 1);
@@ -97,7 +99,7 @@ class ItemRequestServiceUnitTest {
     void getItemRequestsWithEmptyResult() {
         createItemRequestDto();
 
-        Mockito.when(itemRequestRepository.findItemRequestByRequestorOrderByCreatedDesc(Mockito.any()))
+        Mockito.when(itemRequestRepository.findItemRequestByRequestorOrderByCreatedDesc(any()))
                 .thenReturn(List.of());
         List<ItemRequestDto> returned = itemRequestService.getItemRequests(userDto.getId());
         Assertions.assertEquals(returned.size(), 0);
@@ -108,9 +110,9 @@ class ItemRequestServiceUnitTest {
         createItemRequestDto();
 
 
-        Mockito.when(itemService.getItemsByRequestId(Mockito.any()))
+        Mockito.when(itemService.getItemsByRequestId(any()))
                 .thenReturn(List.of(new ItemDto(1, "name", "desr", true, 3, 1)));
-        Mockito.when(itemRequestRepository.findById(Mockito.any()))
+        Mockito.when(itemRequestRepository.findById(any()))
                 .thenReturn(java.util.Optional.ofNullable(itemRequest));
         ItemRequestDto returned = itemRequestService.getItemRequest(2, userDto.getId());
         Assertions.assertEquals(returned.getDescription(), itemRequest.getDescription());
@@ -120,11 +122,11 @@ class ItemRequestServiceUnitTest {
 
     @Test
     void getItemRequestNotFound() {
-        Mockito.when(userService.getUser(Mockito.any()))
+        Mockito.when(userService.getUser(any()))
                 .thenReturn(userDto);
-        Mockito.when(itemRequestRepository.findById(Mockito.any()))
+        Mockito.when(itemRequestRepository.findById(any()))
                 .thenThrow(NotFoundException.class);
-        Mockito.when(itemService.getItemsByRequestId(Mockito.any()))
+        Mockito.when(itemService.getItemsByRequestId(any()))
                 .thenReturn(List.of());
         assertThrows(NotFoundException.class, () -> itemRequestService.getItemRequest(99, 99));
     }
@@ -133,10 +135,10 @@ class ItemRequestServiceUnitTest {
     void getAllItemRequests() {
         createItemRequestDto();
 
-        Mockito.when(itemService.getItemsByRequests(Mockito.any()))
+        Mockito.when(itemService.getItemsByRequests(any()))
                 .thenReturn(List.of(new ItemDto(1, "name", "desr", true, 3, 1)));
-        Mockito.when(itemRequestRepository.findItemRequestByRequestor_IdIsNotOrderByCreatedDesc(Mockito.any()))
-                .thenReturn(List.of(itemRequest));
+        Mockito.when(itemRequestRepository.findItemRequestByRequestor_IdIsNotOrderByCreatedDesc(any(), any()))
+                .thenReturn(new PageImpl<>(List.of(itemRequest)));
         List<ItemRequestDto> returned = itemRequestService.getAllItemRequests(null, null, userDto.getId());
         Assertions.assertEquals(returned.size(), 1);
         Assertions.assertEquals(returned.get(0).getId(), itemRequest.getId());

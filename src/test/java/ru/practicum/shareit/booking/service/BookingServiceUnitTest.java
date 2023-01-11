@@ -7,6 +7,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import ru.practicum.shareit.booking.Booking;
 import ru.practicum.shareit.booking.dto.BookingCreateDto;
 import ru.practicum.shareit.booking.dto.BookingExtendedDto;
@@ -208,8 +210,8 @@ class BookingServiceUnitTest {
     @Test
     void getBookings() {
         createBookingDto();
-        Mockito.when(bookingRepository.findBookingsByBookerIsOrderByStartDesc(any()))
-                .thenReturn(List.of(booking));
+        Mockito.when(bookingRepository.findBookingsByBookerIsOrderByStartDesc(any(), any()))
+                .thenReturn(new PageImpl<>(List.of(booking)));
         List<BookingExtendedDto> returned = bookingService.getBookings(userDto.getId(), null, null, null);
         Assertions.assertEquals(returned.size(), 1);
         Assertions.assertEquals(returned.get(0).getId(), booking.getId());
@@ -239,8 +241,8 @@ class BookingServiceUnitTest {
     @Test
     void getBookingsWithAllState() {
         createBookingDto();
-        Mockito.when(bookingRepository.findBookingsByBookerIsOrderByStartDesc(any()))
-                .thenReturn(List.of(booking));
+        Mockito.when(bookingRepository.findBookingsByBookerIsOrderByStartDesc(any(), any()))
+                .thenReturn(new PageImpl<>(List.of(booking)));
         List<BookingExtendedDto> returned = bookingService.getBookings(userDto.getId(), Booking.TimeBookingState.ALL.name(), null, null);
         Assertions.assertEquals(returned.size(), 1);
         Assertions.assertEquals(returned.get(0).getId(), booking.getId());
@@ -249,8 +251,8 @@ class BookingServiceUnitTest {
     @Test
     void getBookingsWithPastState() {
         createBookingDto();
-        Mockito.when(bookingRepository.findBookingsByBookerIsAndEndBeforeOrderByStartDesc(any(), any()))
-                .thenReturn(List.of(booking));
+        Mockito.when(bookingRepository.findBookingsByBookerIsAndEndBeforeOrderByStartDesc(any(), any(), any()))
+                .thenReturn(new PageImpl<>(List.of(booking)));
         List<BookingExtendedDto> returned = bookingService.getBookings(userDto.getId(), Booking.TimeBookingState.PAST.name(), null, null);
         Assertions.assertEquals(returned.size(), 1);
         Assertions.assertEquals(returned.get(0).getId(), booking.getId());
@@ -259,8 +261,8 @@ class BookingServiceUnitTest {
     @Test
     void getBookingsWithFutureState() {
         createBookingDto();
-        Mockito.when(bookingRepository.findBookingsByBookerIsAndStartIsAfterOrderByStartDesc(any(), any()))
-                .thenReturn(List.of(booking));
+        Mockito.when(bookingRepository.findBookingsByBookerIsAndStartIsAfterOrderByStartDesc(any(), any(), any()))
+                .thenReturn(new PageImpl<>(List.of(booking)));
         List<BookingExtendedDto> returned = bookingService.getBookings(userDto.getId(), Booking.TimeBookingState.FUTURE.name(), null, null);
         Assertions.assertEquals(returned.size(), 1);
         Assertions.assertEquals(returned.get(0).getId(), booking.getId());
@@ -269,8 +271,8 @@ class BookingServiceUnitTest {
     @Test
     void getBookingsWithCurrentState() {
         createBookingDto();
-        Mockito.when(bookingRepository.findBookingsByBookerIsAndStartBeforeAndEndAfterOrderByStartDesc(any(), any(), any()))
-                .thenReturn(List.of(booking));
+        Mockito.when(bookingRepository.findBookingsByBookerIsAndStartBeforeAndEndAfterOrderByStartDesc(any(), any(), any(), any()))
+                .thenReturn(new PageImpl<>(List.of(booking)));
         List<BookingExtendedDto> returned = bookingService.getBookings(userDto.getId(), Booking.TimeBookingState.CURRENT.name(), null, null);
         Assertions.assertEquals(returned.size(), 1);
         Assertions.assertEquals(returned.get(0).getId(), booking.getId());
@@ -279,8 +281,8 @@ class BookingServiceUnitTest {
     @Test
     void getBookingsWithRejectState() {
         createBookingDto();
-        Mockito.when(bookingRepository.findBookingsByBookerIsAndStatusIsOrderByStartDesc(any(), any()))
-                .thenReturn(List.of(booking));
+        Mockito.when(bookingRepository.findBookingsByBookerIsAndStatusIsOrderByStartDesc(any(), any(), any()))
+                .thenReturn(new PageImpl<>(List.of(booking)));
         List<BookingExtendedDto> returned = bookingService.getBookings(userDto.getId(), Booking.BookingState.REJECTED.name(), null, null);
         Assertions.assertEquals(returned.size(), 1);
         Assertions.assertEquals(returned.get(0).getId(), booking.getId());
@@ -289,8 +291,8 @@ class BookingServiceUnitTest {
     @Test
     void getBookingsWithCancelStateWithEmptyResult() {
         createBookingDto();
-        Mockito.when(bookingRepository.findBookingsByBookerIsAndStatusIsOrderByStartDesc(any(), any()))
-                .thenReturn(List.of());
+        Mockito.when(bookingRepository.findBookingsByBookerIsAndStatusIsOrderByStartDesc(any(), any(), any()))
+                .thenReturn(Page.empty());
         List<BookingExtendedDto> returned = bookingService.getBookings(userDto.getId(), Booking.BookingState.CANCELED.name(), null, null);
         Assertions.assertEquals(returned.size(), 0);
     }
@@ -298,8 +300,8 @@ class BookingServiceUnitTest {
     @Test
     void getBookingsWithEmptyResult() {
         createBookingDto();
-        Mockito.when(bookingRepository.findBookingsByBookerIsAndStartIsAfterOrderByStartDesc(any(), any()))
-                .thenReturn(List.of());
+        Mockito.when(bookingRepository.findBookingsByBookerIsAndStartIsAfterOrderByStartDesc(any(), any(), any()))
+                .thenReturn(Page.empty());
         List<BookingExtendedDto> returned = bookingService.getBookings(userDto.getId(), Booking.TimeBookingState.FUTURE.name(), null, null);
         Assertions.assertEquals(returned.size(), 0);
     }
@@ -307,8 +309,8 @@ class BookingServiceUnitTest {
     @Test
     void getOwnersBookings() {
         createBookingDto();
-        Mockito.when(bookingRepository.findBookingsByItemOwnerIsOrderByStartDesc(any()))
-                .thenReturn(List.of(booking));
+        Mockito.when(bookingRepository.findBookingsByItemOwnerIsOrderByStartDesc(any(), any()))
+                .thenReturn(new PageImpl<>(List.of(booking)));
         List<BookingExtendedDto> returned = bookingService.getOwnersBookings(userDto.getId(), null, null, null);
         Assertions.assertEquals(returned.size(), 1);
         Assertions.assertEquals(returned.get(0).getId(), booking.getId());
@@ -317,8 +319,8 @@ class BookingServiceUnitTest {
     @Test
     void getOwnerBookingsWithAllState() {
         createBookingDto();
-        Mockito.when(bookingRepository.findBookingsByItemOwnerIsOrderByStartDesc(any()))
-                .thenReturn(List.of(booking));
+        Mockito.when(bookingRepository.findBookingsByItemOwnerIsOrderByStartDesc(any(), any()))
+                .thenReturn(new PageImpl<>(List.of(booking)));
         List<BookingExtendedDto> returned = bookingService.getOwnersBookings(userDto.getId(), Booking.TimeBookingState.ALL.name(), null, null);
         Assertions.assertEquals(returned.size(), 1);
         Assertions.assertEquals(returned.get(0).getId(), booking.getId());
@@ -327,8 +329,8 @@ class BookingServiceUnitTest {
     @Test
     void getOwnersBookingsWithPastState() {
         createBookingDto();
-        Mockito.when(bookingRepository.findBookingsByItemOwnerAndEndBeforeOrderByStartDesc(any(), any()))
-                .thenReturn(List.of(booking));
+        Mockito.when(bookingRepository.findBookingsByItemOwnerAndEndBeforeOrderByStartDesc(any(), any(), any()))
+                .thenReturn(new PageImpl<>(List.of(booking)));
         List<BookingExtendedDto> returned = bookingService.getOwnersBookings(userDto.getId(), Booking.TimeBookingState.PAST.name(), null, null);
         Assertions.assertEquals(returned.size(), 1);
         Assertions.assertEquals(returned.get(0).getId(), booking.getId());
@@ -337,8 +339,8 @@ class BookingServiceUnitTest {
     @Test
     void getOwnersBookingsWithCurrentState() {
         createBookingDto();
-        Mockito.when(bookingRepository.findBookingsByItemOwnerIsAndStartBeforeAndEndAfterOrderByStartDesc(any(), any(), any()))
-                .thenReturn(List.of(booking));
+        Mockito.when(bookingRepository.findBookingsByItemOwnerIsAndStartBeforeAndEndAfterOrderByStartDesc(any(), any(), any(), any()))
+                .thenReturn(new PageImpl<>(List.of(booking)));
         List<BookingExtendedDto> returned = bookingService.getOwnersBookings(userDto.getId(), Booking.TimeBookingState.CURRENT.name(), null, null);
         Assertions.assertEquals(returned.size(), 1);
         Assertions.assertEquals(returned.get(0).getId(), booking.getId());
@@ -347,8 +349,8 @@ class BookingServiceUnitTest {
     @Test
     void getOwnersBookingsWithFutureState() {
         createBookingDto();
-        Mockito.when(bookingRepository.findBookingsByItemOwnerAndStartAfterOrderByStartDesc(any(), any()))
-                .thenReturn(List.of(booking));
+        Mockito.when(bookingRepository.findBookingsByItemOwnerAndStartAfterOrderByStartDesc(any(), any(), any()))
+                .thenReturn(new PageImpl<>(List.of(booking)));
         List<BookingExtendedDto> returned = bookingService.getOwnersBookings(userDto.getId(), Booking.TimeBookingState.FUTURE.name(), null, null);
         Assertions.assertEquals(returned.size(), 1);
         Assertions.assertEquals(returned.get(0).getId(), booking.getId());
@@ -357,8 +359,8 @@ class BookingServiceUnitTest {
     @Test
     void getOwnersBookingsWithRejectState() {
         createBookingDto();
-        Mockito.when(bookingRepository.findBookingsByItemOwnerIsAndStatusIsOrderByStartDesc(any(), any()))
-                .thenReturn(List.of(booking));
+        Mockito.when(bookingRepository.findBookingsByItemOwnerIsAndStatusIsOrderByStartDesc(any(), any(), any()))
+                .thenReturn(new PageImpl<>(List.of(booking)));
         List<BookingExtendedDto> returned = bookingService.getOwnersBookings(userDto.getId(), Booking.BookingState.REJECTED.name(), null, null);
         Assertions.assertEquals(returned.size(), 1);
         Assertions.assertEquals(returned.get(0).getId(), booking.getId());

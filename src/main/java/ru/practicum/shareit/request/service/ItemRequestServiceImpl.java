@@ -3,7 +3,7 @@ package ru.practicum.shareit.request.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.error.NotFoundException;
@@ -31,6 +31,8 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     private final UserService userService;
     private final ItemService itemService;
     private final ItemRequestRepository itemRequestRepository;
+    private static final Pageable PAGEABLE_DEFAULT = PaginationUtils.createPageRequest(0, 100, Sort.by("created").descending());
+
 
     @Override
     public ItemRequestDto createItemRequest(ItemRequestDto itemRequestDto, Integer requestorId) {
@@ -68,15 +70,12 @@ public class ItemRequestServiceImpl implements ItemRequestService {
 
     @Override
     public List<ItemRequestDto> getAllItemRequests(Integer from, Integer size, Integer userId) {
-        PageRequest pageRequest = PaginationUtils.createPageRequest(from, size, Sort.by("created").descending());
-        List<ItemRequest> itemRequests;
-        if (pageRequest == null) {
-            itemRequests = itemRequestRepository.findItemRequestByRequestor_IdIsNotOrderByCreatedDesc(userId);
-        } else {
-            itemRequests = itemRequestRepository.findItemRequestByRequestor_IdIsNotOrderByCreatedDesc(userId, pageRequest)
-                    .stream()
-                    .collect(Collectors.toList());
-        }
+        Pageable pageable = from == null || size == null
+                ? PAGEABLE_DEFAULT
+                : PaginationUtils.createPageRequest(from, size, Sort.by("created").descending());
+        List<ItemRequest> itemRequests = itemRequestRepository.findItemRequestByRequestor_IdIsNotOrderByCreatedDesc(userId, pageable)
+                .stream()
+                .collect(Collectors.toList());
 
         Map<Integer, List<ItemDto>> items = itemService.getItemsByRequests(itemRequests.stream().map(ItemRequest::getId).collect(Collectors.toList()))
                 .stream()
