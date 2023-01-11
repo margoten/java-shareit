@@ -3,6 +3,9 @@ package ru.practicum.shareit.booking.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.Booking;
 import ru.practicum.shareit.booking.dto.BookingCreateDto;
@@ -17,12 +20,14 @@ import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.mapper.UserMapper;
 import ru.practicum.shareit.user.service.UserService;
+import ru.practicum.shareit.utils.PaginationUtils;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
@@ -30,6 +35,7 @@ import java.util.stream.Collectors;
 public class BookingServiceImpl implements BookingService {
     private final BookingRepository bookingRepository;
     private final UserService userService;
+    private static final Pageable PAGEABLE_DEFAULT = PaginationUtils.createPageRequest(0, 100, Sort.by("start").descending());
 
     @Override
     public BookingExtendedDto createBooking(BookingCreateDto bookingCreateDto, ItemExtendedDto itemDto, Integer bookerId) {
@@ -42,6 +48,8 @@ public class BookingServiceImpl implements BookingService {
         }
         User booker = UserMapper.toUser(userService.getUser(bookerId));
         Item item = ItemMapper.toItem(itemDto);
+        User owner = UserMapper.toUser(userService.getUser(itemDto.getOwnerId()));
+        item.setOwner(owner);
 
         validationBooking(bookingCreateDto);
 
@@ -66,7 +74,7 @@ public class BookingServiceImpl implements BookingService {
 
         }
         if (!booking.getItem().getOwner().getId().equals(userId) || !booking.getStatus().equals(Booking.BookingState.WAITING)) {
-            throw new ValidationException("Стастус бронирования не может быть обновлен");
+            throw new ValidationException("Статус бронирования не может быть обновлен");
         }
         booking.setStatus(approved ? Booking.BookingState.APPROVED : Booking.BookingState.REJECTED);
         return BookingMapper.toBookingExtendedDto(bookingRepository.save(booking));
@@ -83,80 +91,68 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public List<BookingExtendedDto> getBookings(Integer bookerId, String state) {
+    public List<BookingExtendedDto> getBookings(Integer bookerId, String state, Integer from, Integer size) {
+        Pageable pageable = from == null || size == null
+                ? PAGEABLE_DEFAULT
+                : PaginationUtils.createPageRequest(from, size, Sort.by("start").descending());
+
+        return getBookingsStream(bookerId, state, pageable)
+                .map(BookingMapper::toBookingExtendedDto)
+                .collect(Collectors.toList());
+
+    }
+
+    private Stream<Booking> getBookingsStream(Integer bookerId, String state, Pageable pageable) {
         User booker = UserMapper.toUser(userService.getUser(bookerId));
-
         if (state == null || state.equals(Booking.TimeBookingState.ALL.name())) {
-            return bookingRepository.findBookingsByBookerIsOrderByStartDesc(booker)
-                    .stream()
-                    .map(BookingMapper::toBookingExtendedDto)
-                    .collect(Collectors.toList());
+            return bookingRepository.findBookingsByBookerIsOrderByStartDesc(booker, pageable).stream();
         }
-
         if (state.equals(Booking.TimeBookingState.FUTURE.name())) {
-            return bookingRepository.findBookingsByBookerIsAndStartIsAfterOrderByStartDesc(booker, LocalDateTime.now())
-                    .stream()
-                    .map(BookingMapper::toBookingExtendedDto)
-                    .collect(Collectors.toList());
+            return bookingRepository.findBookingsByBookerIsAndStartIsAfterOrderByStartDesc(booker, LocalDateTime.now(), pageable).stream();
         }
         if (state.equals(Booking.TimeBookingState.CURRENT.name())) {
-            return bookingRepository.findBookingsByBookerIsAndStartBeforeAndEndAfterOrderByStartDesc(booker, LocalDateTime.now(), LocalDateTime.now())
-                    .stream()
-                    .map(BookingMapper::toBookingExtendedDto)
-                    .collect(Collectors.toList());
+            return bookingRepository.findBookingsByBookerIsAndStartBeforeAndEndAfterOrderByStartDesc(booker, LocalDateTime.now(), LocalDateTime.now(), null).stream();
         }
 
         if (state.equals(Booking.TimeBookingState.PAST.name())) {
-            return bookingRepository.findBookingsByBookerIsAndEndBeforeOrderByStartDesc(booker, LocalDateTime.now())
-                    .stream()
-                    .map(BookingMapper::toBookingExtendedDto)
-                    .collect(Collectors.toList());
+            return bookingRepository.findBookingsByBookerIsAndEndBeforeOrderByStartDesc(booker, LocalDateTime.now(), pageable).stream();
         }
-
         if (Arrays.stream(Booking.BookingState.values()).anyMatch(bookingState -> bookingState.name().equals(state))) {
-            return bookingRepository.findBookingsByBookerIsAndStatusIsOrderByStartDesc(booker, Booking.BookingState.valueOf(state))
-                    .stream()
-                    .map(BookingMapper::toBookingExtendedDto)
-                    .collect(Collectors.toList());
+            return bookingRepository.findBookingsByBookerIsAndStatusIsOrderByStartDesc(booker, Booking.BookingState.valueOf(state), pageable).stream();
         }
-
         throw new ValidationException("Unknown state: " + state);
     }
 
     @Override
-    public List<BookingExtendedDto> getOwnersBookings(Integer userId, String state) {
-        User owner = UserMapper.toUser(userService.getUser(userId));
+    public List<BookingExtendedDto> getOwnersBookings(Integer userId, String state, Integer from, Integer size) {
+        Pageable pageable = from == null || size == null
+                ? PAGEABLE_DEFAULT
+                : PaginationUtils.createPageRequest(from, size, Sort.by("start").descending());
 
+        return getOwnersBookingsStream(userId, state, pageable)
+                .map(BookingMapper::toBookingExtendedDto)
+                .collect(Collectors.toList());
+
+
+    }
+
+    private Stream<Booking> getOwnersBookingsStream(Integer userId, String state, @PageableDefault(sort = {"start",}, value = 100, direction = Sort.Direction.DESC) Pageable pageable) {
+        User owner = UserMapper.toUser(userService.getUser(userId));
         if (state == null || state.equals(Booking.TimeBookingState.ALL.name())) {
-            return bookingRepository.findBookingsByItemOwnerIsOrderByStartDesc(owner)
-                    .stream()
-                    .map(BookingMapper::toBookingExtendedDto)
-                    .collect(Collectors.toList());
+            return bookingRepository.findBookingsByItemOwnerIsOrderByStartDesc(owner, pageable).stream();
         }
         if (state.equals(Booking.TimeBookingState.FUTURE.name())) {
-            return bookingRepository.findBookingsByItemOwnerAndStartAfterOrderByStartDesc(owner, LocalDateTime.now())
-                    .stream()
-                    .map(BookingMapper::toBookingExtendedDto)
-                    .collect(Collectors.toList());
+            return bookingRepository.findBookingsByItemOwnerAndStartAfterOrderByStartDesc(owner, LocalDateTime.now(), pageable).stream();
         }
         if (state.equals(Booking.TimeBookingState.CURRENT.name())) {
-            return bookingRepository.findBookingsByItemOwnerIsAndStartBeforeAndEndAfterOrderByStartDesc(owner, LocalDateTime.now(), LocalDateTime.now())
-                    .stream()
-                    .map(BookingMapper::toBookingExtendedDto)
-                    .collect(Collectors.toList());
+            return bookingRepository.findBookingsByItemOwnerIsAndStartBeforeAndEndAfterOrderByStartDesc(owner, LocalDateTime.now(), LocalDateTime.now(), pageable).stream();
         }
 
         if (state.equals(Booking.TimeBookingState.PAST.name())) {
-            return bookingRepository.findBookingsByItemOwnerAndEndBeforeOrderByStartDesc(owner, LocalDateTime.now())
-                    .stream()
-                    .map(BookingMapper::toBookingExtendedDto)
-                    .collect(Collectors.toList());
+            return bookingRepository.findBookingsByItemOwnerAndEndBeforeOrderByStartDesc(owner, LocalDateTime.now(), pageable).stream();
         }
         if (Arrays.stream(Booking.BookingState.values()).anyMatch(bookingState -> bookingState.name().equals(state))) {
-            return bookingRepository.findBookingsByItemOwnerIsAndStatusIsOrderByStartDesc(owner, Booking.BookingState.valueOf(state))
-                    .stream()
-                    .map(BookingMapper::toBookingExtendedDto)
-                    .collect(Collectors.toList());
+            return bookingRepository.findBookingsByItemOwnerIsAndStatusIsOrderByStartDesc(owner, Booking.BookingState.valueOf(state), pageable).stream();
         }
         throw new ValidationException("Unknown state: " + state);
     }
