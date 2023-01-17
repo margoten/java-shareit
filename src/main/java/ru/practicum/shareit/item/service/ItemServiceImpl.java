@@ -3,6 +3,8 @@ package ru.practicum.shareit.item.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.Booking;
 import ru.practicum.shareit.booking.dto.BookingExtendedDto;
@@ -18,9 +20,12 @@ import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.CommentRepository;
 import ru.practicum.shareit.item.repository.ItemRepository;
+import ru.practicum.shareit.request.dto.ItemRequestDto;
+import ru.practicum.shareit.request.mapper.ItemRequestMapper;
 import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.mapper.UserMapper;
 import ru.practicum.shareit.user.service.UserService;
+import ru.practicum.shareit.utils.PaginationUtils;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
@@ -37,13 +42,17 @@ public class ItemServiceImpl implements ItemService {
     private final CommentRepository commentRepository;
     private final UserService userService;
     private final BookingService bookingService;
+    private static final Pageable PAGEABLE_DEFAULT = PaginationUtils.createPageRequest(0, 100, Sort.by("id").ascending());
 
     @Override
-    public ItemDto createItem(ItemDto itemDto, Integer ownerId) {
+    public ItemDto createItem(ItemDto itemDto, ItemRequestDto itemRequestDto, Integer ownerId) {
         validationItem(itemDto);
         User owner = UserMapper.toUser(userService.getUser(ownerId));
         Item item = ItemMapper.toItem(itemDto);
         item.setOwner(owner);
+        if (itemRequestDto != null) {
+            item.setRequest(ItemRequestMapper.toItemRequest(itemRequestDto, userService.getUser(itemRequestDto.getRequestorId())));
+        }
         return ItemMapper.toItemDto(itemRepository.save(item));
     }
 
@@ -73,15 +82,14 @@ public class ItemServiceImpl implements ItemService {
     public ItemExtendedDto getItem(Integer id, Integer userId) {
         Item item = itemRepository.findById(id).orElseThrow(() ->
                 new NotFoundException("Товара с id = " + id + " не существует."));
-        Map<Integer, List<CommentDto>> comments = getAllComments()
-                .stream().collect(Collectors.groupingBy(CommentDto::getItemId));
+        List<CommentDto> comments = getComments(id);
 
         List<BookingExtendedDto> bookings = bookingService.getBookingsByItem(item.getId(), userId);
 
         return ItemMapper.toItemExtendedDto(item,
                 getLastItemBooking(bookings),
                 getNextItemBooking(bookings),
-                comments.get(item.getId()));
+                comments);
     }
 
     @Override
@@ -90,17 +98,20 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public List<ItemExtendedDto> getItems(Integer ownerId) {
+    public List<ItemExtendedDto> getItems(Integer ownerId, Integer from, Integer size) {
         if (ownerId == null) {
             throw new ValidationException("Не заполненное поле владельца");
         }
         Map<Integer, List<CommentDto>> comments = getAllComments()
                 .stream().collect(Collectors.groupingBy(CommentDto::getItemId));
 
-        Map<Integer, List<BookingExtendedDto>> bookings = bookingService.getOwnersBookings(ownerId, null)
+        Map<Integer, List<BookingExtendedDto>> bookings = bookingService.getOwnersBookings(ownerId, null, null, null)
                 .stream()
                 .collect(Collectors.groupingBy((BookingExtendedDto bookingExtendedDto) -> bookingExtendedDto.getItem().getId()));
-        return itemRepository.findAllByOwner_IdIs(ownerId)
+        Pageable pageable = from == null || size == null
+                ? PAGEABLE_DEFAULT
+                : PaginationUtils.createPageRequest(from, size, Sort.by("id").ascending());
+        return itemRepository.findAllByOwner_IdIs(ownerId, pageable)
                 .stream()
                 .map(item -> ItemMapper.toItemExtendedDto(item,
                         getLastItemBooking(bookings.get(item.getId())),
@@ -110,26 +121,28 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public List<ItemDto> searchItems(String text, Integer ownerId) {
+    public List<ItemDto> searchItems(String text, Integer ownerId, Integer from, Integer size) {
         if (text.isBlank()) {
             return Collections.emptyList();
         }
-        return itemRepository.search(text)
-                .stream()
-                .map(ItemMapper::toItemDto)
+        Pageable pageable = from == null || size == null
+                ? PAGEABLE_DEFAULT
+                : PaginationUtils.createPageRequest(from, size, Sort.by("id").ascending());
+        return itemRepository.search(text, pageable)
+                .stream().map(ItemMapper::toItemDto)
                 .collect(Collectors.toList());
     }
 
     @Override
     public CommentDto createComment(CommentDto commentDto, Integer itemId, Integer userId) {
         if (commentDto.getText() == null || commentDto.getText().isBlank()) {
-            throw new ValidationException("Текс комментария не может быть пустым");
+            throw new ValidationException("Текст комментария не может быть пустым");
         }
 
         Item item = getItemFromDB(itemId);
         User user = UserMapper.toUser(userService.getUser(userId));
 
-        List<BookingExtendedDto> bookings = bookingService.getBookings(userId, Booking.TimeBookingState.PAST.name());
+        List<BookingExtendedDto> bookings = bookingService.getBookings(userId, Booking.TimeBookingState.PAST.name(), null, null);
         if (bookings.isEmpty()) {
             throw new ValidationException("Пользователь не может оставлять комментарий ");
         }
@@ -144,8 +157,15 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public List<CommentDto> getComments(Integer itemId) {
-        // Item item = getItemFromDB(itemId);
         return commentRepository.findCommentByItem_IdIsOrderByCreated(itemId)
+                .stream()
+                .map(CommentMapper::toCommentDto)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<CommentDto> getItemsComments(List<Integer> itemIds) {
+        return commentRepository.findCommentByItem_IdInOrderByCreated(itemIds)
                 .stream()
                 .map(CommentMapper::toCommentDto)
                 .collect(Collectors.toList());
@@ -156,6 +176,22 @@ public class ItemServiceImpl implements ItemService {
         return commentRepository.findAll()
                 .stream()
                 .map(CommentMapper::toCommentDto)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<ItemDto> getItemsByRequestId(Integer requestId) {
+        return itemRepository.findAllByRequest_IdIs(requestId)
+                .stream()
+                .map(ItemMapper::toItemDto)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<ItemDto> getItemsByRequests(List<Integer> requests) {
+        return itemRepository.findAllByRequest_IdIn(requests)
+                .stream()
+                .map(ItemMapper::toItemDto)
                 .collect(Collectors.toList());
     }
 

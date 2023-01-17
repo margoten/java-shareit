@@ -8,4 +8,6 @@ import java.util.List;
 public interface CommentRepository extends JpaRepository<Comment, Integer> {
 
     List<Comment> findCommentByItem_IdIsOrderByCreated(Integer itemId);
+
+    List<Comment> findCommentByItem_IdInOrderByCreated(List<Integer> itemId);
 }

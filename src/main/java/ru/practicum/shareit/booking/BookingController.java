@@ -22,28 +22,38 @@ public class BookingController {
     private final ItemService itemService;
 
     @GetMapping()
-    public List<BookingExtendedDto> getBookings(@RequestParam(required = false) String state, @RequestHeader(required = false, value = "X-Sharer-User-Id") Integer userId) {
-        return bookingService.getBookings(userId, state);
+    public List<BookingExtendedDto> getBookings(@RequestParam(required = false) String state,
+                                                @RequestParam(required = false) Integer from,
+                                                @RequestParam(required = false) Integer size,
+                                                @RequestHeader(required = false, value = "X-Sharer-User-Id") Integer userId) {
+        return bookingService.getBookings(userId, state, from, size);
     }
 
     @GetMapping("/owner")
-    public List<BookingExtendedDto> getOwnerBookings(@RequestParam(required = false) String state, @RequestHeader(required = false, value = "X-Sharer-User-Id") Integer userId) {
-        return bookingService.getOwnersBookings(userId, state);
+    public List<BookingExtendedDto> getOwnerBookings(@RequestParam(required = false) String state,
+                                                     @RequestParam(required = false) Integer from,
+                                                     @RequestParam(required = false) Integer size,
+                                                     @RequestHeader(required = false, value = "X-Sharer-User-Id") Integer userId) {
+        return bookingService.getOwnersBookings(userId, state, from, size);
     }
 
     @PostMapping()
-    public BookingExtendedDto createBooking(@RequestBody BookingCreateDto bookingDto, @RequestHeader(required = false, value = "X-Sharer-User-Id") Integer userId) {
+    public BookingExtendedDto createBooking(@RequestBody BookingCreateDto bookingDto,
+                                            @RequestHeader(required = false, value = "X-Sharer-User-Id") Integer userId) {
         ItemExtendedDto item = itemService.getItem(bookingDto.getItemId(), userId);
         return bookingService.createBooking(bookingDto, item, userId);
     }
 
     @PatchMapping("/{bookingId}")
-    public BookingExtendedDto approveBooking(@PathVariable Integer bookingId, @RequestParam(required = false) boolean approved, @RequestHeader(required = false, value = "X-Sharer-User-Id") Integer userId) {
+    public BookingExtendedDto approveBooking(@PathVariable Integer bookingId,
+                                             @RequestParam(required = false) boolean approved,
+                                             @RequestHeader(required = false, value = "X-Sharer-User-Id") Integer userId) {
         return bookingService.approveBooking(bookingId, approved, userId);
     }
 
     @GetMapping("/{bookingId}")
-    public BookingExtendedDto getBooking(@PathVariable Integer bookingId, @RequestHeader(required = false, value = "X-Sharer-User-Id") Integer userId) {
+    public BookingExtendedDto getBooking(@PathVariable Integer bookingId,
+                                         @RequestHeader(required = false, value = "X-Sharer-User-Id") Integer userId) {
         return bookingService.getBooking(bookingId, userId);
     }
 
