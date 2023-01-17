@@ -42,7 +42,7 @@ class BookingServiceImplTest {
         itemDto = itemService.createItem(new ItemDto(null,
                 "Item",
                 "Description",
-                true, itemOwner.getId(), null), null, itemOwner.getId());
+                true, itemOwner.getId(), null), itemOwner.getId());
 
         ItemExtendedDto itemExtendedDto = new ItemExtendedDto(itemDto.getId(),
                 itemDto.getName(),

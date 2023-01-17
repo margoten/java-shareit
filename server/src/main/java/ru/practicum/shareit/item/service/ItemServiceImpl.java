@@ -6,10 +6,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import ru.practicum.shareit.booking.Booking;
 import ru.practicum.shareit.booking.dto.BookingExtendedDto;
+import ru.practicum.shareit.booking.mapper.BookingMapper;
 import ru.practicum.shareit.booking.repository.BookingRepository;
-import ru.practicum.shareit.booking.service.BookingService;
 import ru.practicum.shareit.error.NotFoundException;
 import ru.practicum.shareit.error.ValidationException;
 import ru.practicum.shareit.item.dto.CommentDto;
@@ -21,12 +20,10 @@ import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.CommentRepository;
 import ru.practicum.shareit.item.repository.ItemRepository;
-import ru.practicum.shareit.request.dto.ItemRequestDto;
-import ru.practicum.shareit.request.mapper.ItemRequestMapper;
+import ru.practicum.shareit.request.model.ItemRequest;
+import ru.practicum.shareit.request.repository.ItemRequestRepository;
 import ru.practicum.shareit.user.User;
-import ru.practicum.shareit.user.mapper.UserMapper;
 import ru.practicum.shareit.user.repository.UserRepository;
-import ru.practicum.shareit.user.service.UserService;
 import ru.practicum.shareit.utils.PaginationUtils;
 
 import java.time.LocalDateTime;
@@ -44,15 +41,19 @@ public class ItemServiceImpl implements ItemService {
     private final CommentRepository commentRepository;
     private final UserRepository userRepository;
     private final BookingRepository bookingRepository;
+    private final ItemRequestRepository itemRequestRepository;
 
     @Override
-    public ItemDto createItem(ItemDto itemDto, ItemRequestDto itemRequestDto, Integer ownerId) {
-        validationItem(itemDto);
-        User owner = UserMapper.toUser(userService.getUser(ownerId));
+    public ItemDto createItem(ItemDto itemDto, Integer ownerId) {
+        User owner = userRepository.findById(ownerId)
+                .orElseThrow(() -> new NotFoundException("Not found user with id = " + ownerId));
         Item item = ItemMapper.toItem(itemDto);
         item.setOwner(owner);
-        if (itemRequestDto != null) {
-            item.setRequest(ItemRequestMapper.toItemRequest(itemRequestDto, userService.getUser(itemRequestDto.getRequestorId())));
+        if (itemDto.getRequestId() != null) {
+            ItemRequest itemRequest = itemRequestRepository.findById(itemDto.getRequestId())
+                    .orElseThrow(() ->
+                            new NotFoundException("Not found item request with id = " + itemDto.getRequestId()));
+            item.setRequest(itemRequest);
         }
         return ItemMapper.toItemDto(itemRepository.save(item));
     }
@@ -85,7 +86,11 @@ public class ItemServiceImpl implements ItemService {
                 new NotFoundException("Товара с id = " + id + " не существует."));
         List<CommentDto> comments = getComments(id);
 
-        List<BookingExtendedDto> bookings = bookingService.getBookingsByItem(item.getId(), userId);
+        List<BookingExtendedDto> bookings = bookingRepository.findBookingsByItem_IdAndItem_Owner_IdIsOrderByStart(id, userId)
+                .stream()
+                .map(BookingMapper::toBookingExtendedDto)
+                .collect(Collectors.toList());
+        ;
 
         return ItemMapper.toItemExtendedDto(item,
                 getLastItemBooking(bookings),
@@ -100,18 +105,19 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public List<ItemExtendedDto> getItems(Integer ownerId, Integer from, Integer size) {
-        if (ownerId == null) {
-            throw new ValidationException("Не заполненное поле владельца");
-        }
-        Map<Integer, List<CommentDto>> comments = getAllComments()
-                .stream().collect(Collectors.groupingBy(CommentDto::getItemId));
+        Pageable pageable = PaginationUtils.createPageRequest(from, size, Sort.by("id").ascending());
 
-        Map<Integer, List<BookingExtendedDto>> bookings = bookingService.getOwnersBookings(ownerId, null, null, null)
+        List<Item> items = itemRepository.findAllByOwner_IdIs(ownerId, pageable)
+                .toList();
+        Map<Integer, List<CommentDto>> comments = commentRepository.findCommentByItemInOrderByCreated(items)
                 .stream()
+                .map(CommentMapper::toCommentDto)
+                .collect(Collectors.groupingBy(CommentDto::getItemId));
+
+        Map<Integer, List<BookingExtendedDto>> bookings = bookingRepository.findBookingsByItemOwner_IdIsAndItemInOrderByStartDesc(ownerId, items)
+                .stream()
+                .map(BookingMapper::toBookingExtendedDto)
                 .collect(Collectors.groupingBy((BookingExtendedDto bookingExtendedDto) -> bookingExtendedDto.getItem().getId()));
-        Pageable pageable = from == null || size == null
-                ? PAGEABLE_DEFAULT
-                : PaginationUtils.createPageRequest(from, size, Sort.by("id").ascending());
         return itemRepository.findAllByOwner_IdIs(ownerId, pageable)
                 .stream()
                 .map(item -> ItemMapper.toItemExtendedDto(item,
@@ -126,9 +132,7 @@ public class ItemServiceImpl implements ItemService {
         if (text.isBlank()) {
             return Collections.emptyList();
         }
-        Pageable pageable = from == null || size == null
-                ? PAGEABLE_DEFAULT
-                : PaginationUtils.createPageRequest(from, size, Sort.by("id").ascending());
+        Pageable pageable = PaginationUtils.createPageRequest(from, size, Sort.by("id").ascending());
         return itemRepository.search(text, pageable)
                 .stream().map(ItemMapper::toItemDto)
                 .collect(Collectors.toList());
@@ -136,15 +140,13 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public CommentDto createComment(CommentDto commentDto, Integer itemId, Integer userId) {
-        if (commentDto.getText() == null || commentDto.getText().isBlank()) {
-            throw new ValidationException("Текст комментария не может быть пустым");
-        }
-
         Item item = getItemFromDB(itemId);
-        User user = UserMapper.toUser(userService.getUser(userId));
+        User user = userRepository.findById(userId).orElseThrow(() -> {
+            throw new NotFoundException("Пользователя с id = " + userId + " не существует.");
+        });
 
-        List<BookingExtendedDto> bookings = bookingService.getBookings(userId, Booking.TimeBookingState.PAST.name(), null, null);
-        if (bookings.isEmpty()) {
+        boolean canCreateComment = bookingRepository.existsBookingByBookerIsAndEndBefore(user, LocalDateTime.now());
+        if (!canCreateComment) {
             throw new ValidationException("Пользователь не может оставлять комментарий ");
         }
 
@@ -159,14 +161,6 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public List<CommentDto> getComments(Integer itemId) {
         return commentRepository.findCommentByItem_IdIsOrderByCreated(itemId)
-                .stream()
-                .map(CommentMapper::toCommentDto)
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    public List<CommentDto> getItemsComments(List<Integer> itemIds) {
-        return commentRepository.findCommentByItem_IdInOrderByCreated(itemIds)
                 .stream()
                 .map(CommentMapper::toCommentDto)
                 .collect(Collectors.toList());
@@ -215,22 +209,5 @@ public class ItemServiceImpl implements ItemService {
                 : bookings.stream()
                 .filter(booking -> booking.getStart().isAfter(LocalDateTime.now()))
                 .min(Comparator.comparing(BookingExtendedDto::getEnd)).orElse(null);
-    }
-
-    private void validationItem(ItemDto item) {
-        if (item.getName() == null || item.getName().isBlank()) {
-            log.warn("Название не может быть пустым.");
-            throw new ValidationException("Название не может быть пустым.");
-        }
-
-        if (item.getDescription() == null || item.getDescription().isBlank()) {
-            log.warn("Описание не может быть пустым.");
-            throw new ValidationException("Описание не может быть пустым.");
-        }
-
-        if (item.getAvailable() == null) {
-            log.warn("Поле доступности пустое.");
-            throw new ValidationException("Поле доступности пустое.");
-        }
     }
 }

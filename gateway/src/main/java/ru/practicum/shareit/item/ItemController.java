@@ -22,7 +22,10 @@ public class ItemController {
     @GetMapping()
     public ResponseEntity<Object> getAllItems(@PositiveOrZero @RequestParam(name = "from", defaultValue = "0") Integer from,
                                               @Positive @RequestParam(name = "size", defaultValue = "10") Integer size,
-                                              @RequestHeader(required = false, value = "X-Sharer-User-Id") long userId) {
+                                              @RequestHeader(required = false, value = "X-Sharer-User-Id") Long userId) {
+        if (userId == null) {
+            throw new IllegalArgumentException("Field userId is null");
+        }
         return itemClient.getItems(userId, from, size);
     }
 

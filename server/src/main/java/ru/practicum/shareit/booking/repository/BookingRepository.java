@@ -4,6 +4,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import ru.practicum.shareit.booking.Booking;
+import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.User;
 
 import java.time.LocalDateTime;
@@ -11,6 +12,8 @@ import java.util.List;
 
 public interface BookingRepository extends JpaRepository<Booking, Integer> {
     //region Методы запросов бронирования для автора бронирования
+    boolean existsBookingByBookerIsAndEndBefore(User booker, LocalDateTime localDateTime);
+
     List<Booking> findBookingsByItem_IdIsAndStatusIsAndEndIsAfter(Integer itemId, Booking.BookingState bookingState, LocalDateTime localDateTime);
 
     Page<Booking> findBookingsByBookerIsOrderByStartDesc(User booker, Pageable pageable);
@@ -36,6 +39,8 @@ public interface BookingRepository extends JpaRepository<Booking, Integer> {
     Page<Booking> findBookingsByItemOwnerIsAndStartBeforeAndEndAfterOrderByStartDesc(User owner, LocalDateTime startDateTime, LocalDateTime endDateTime, Pageable pageable);
 
     List<Booking> findBookingsByItem_IdAndItem_Owner_IdIsOrderByStart(Integer itemId, Integer userId);
+
+    List<Booking> findBookingsByItemOwner_IdIsAndItemInOrderByStartDesc(Integer ownerId, List<Item> items);
 
 
     //endregion

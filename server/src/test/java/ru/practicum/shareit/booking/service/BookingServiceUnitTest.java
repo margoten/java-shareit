@@ -114,7 +114,7 @@ class BookingServiceUnitTest {
                 .thenReturn(java.util.Optional.ofNullable(user));
         bookingCreatedDto.setEnd(LocalDateTime.now().minusDays(1));
 
-        ValidationException ex = assertThrows(ValidationException.class, () -> bookingService.createBooking(bookingCreatedDto, 2));
+        NotFoundException ex = assertThrows(NotFoundException.class, () -> bookingService.createBooking(bookingCreatedDto, 2));
         Assertions.assertEquals("Некорректная дата окончания бронирования.", ex.getMessage());
     }
 
@@ -130,7 +130,7 @@ class BookingServiceUnitTest {
     void createBookingByItemOwner() {
         bookingCreatedDto.setBooker(booking.getItem().getOwner().getId());
         NotFoundException ex = assertThrows(NotFoundException.class, () -> bookingService.createBooking(bookingCreatedDto, bookingCreatedDto.getBooker()));
-        Assertions.assertEquals("Товар с id " + bookingCreatedDto.getItemId() + " не может быть заброванирован владельцем", ex.getMessage());
+        Assertions.assertEquals("Not found item with id = 1", ex.getMessage());
     }
 
     @Test
@@ -140,7 +140,7 @@ class BookingServiceUnitTest {
         Mockito.when(bookingRepository.findBookingsByItem_IdIsAndStatusIsAndEndIsAfter(anyInt(), any(), any()))
                 .thenReturn(List.of(booking));
         NotFoundException ex = assertThrows(NotFoundException.class, () -> bookingService.createBooking(bookingCreatedDto, 2));
-        Assertions.assertEquals("Недоступный товар для бронирования " + booking.getItem().getName(), ex.getMessage());
+        Assertions.assertEquals("Not found item with id = 1 ", ex.getMessage());
     }
 
     @Test

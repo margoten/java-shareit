@@ -98,7 +98,7 @@ class ItemControllerTest {
 
     @Test
     void createItem() throws Exception {
-        when(itemService.createItem(any(), any(), anyInt()))
+        when(itemService.createItem(any(), anyInt()))
                 .thenReturn(itemDto);
 
         mvc.perform(post("/items")
@@ -115,7 +115,7 @@ class ItemControllerTest {
 
     @Test
     void createItemWithValidationException() throws Exception {
-        when(itemService.createItem(any(), any(), anyInt()))
+        when(itemService.createItem(any(), anyInt()))
                 .thenThrow(ValidationException.class);
 
         mvc.perform(post("/items")

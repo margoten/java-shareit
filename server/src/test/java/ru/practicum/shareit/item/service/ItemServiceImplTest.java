@@ -47,7 +47,7 @@ class ItemServiceImplTest {
         itemDto = itemService.createItem(new ItemDto(null,
                 "Item",
                 "Description",
-                true, itemOwner.getId(), null), null, itemOwner.getId());
+                true, itemOwner.getId(), null), itemOwner.getId());
     }
 
     private CommentDto createCommentDto(String commentText, UserDto userDto) {
@@ -123,7 +123,7 @@ class ItemServiceImplTest {
         itemDto = itemService.createItem(new ItemDto(null,
                 "Item2",
                 "Description2",
-                true, itemOwner.getId(), null), null, itemOwner.getId());
+                true, itemOwner.getId(), null), itemOwner.getId());
 
         List<ItemExtendedDto> itemsReturned = itemService.getItems(itemDto.getOwnerId(), 0, 2);
         List<Item> items = entityManager.createQuery("Select i from Item i where i.owner.id = :ownerId", Item.class)
@@ -138,12 +138,12 @@ class ItemServiceImplTest {
         itemDto = itemService.createItem(new ItemDto(null,
                 "Item2",
                 "Description2",
-                true, itemOwner.getId(), null), null, itemOwner.getId());
+                true, itemOwner.getId(), null), itemOwner.getId());
 
         List<ItemDto> itemsReturned = itemService.searchItems("item", itemDto.getOwnerId(), 0, 2);
         List<Item> items = entityManager.createQuery("select i from Item i " +
-                        "where i.available = TRUE and (upper(i.name) like upper(concat('%', :text, '%')) " +
-                        "or upper(i.description) like upper(concat('%', :text, '%')))", Item.class)
+                "where i.available = TRUE and (upper(i.name) like upper(concat('%', :text, '%')) " +
+                "or upper(i.description) like upper(concat('%', :text, '%')))", Item.class)
                 .setParameter("text", "item")
                 .getResultList();
         assertThat(items.size(), equalTo(itemsReturned.size()));
@@ -155,12 +155,12 @@ class ItemServiceImplTest {
         itemDto = itemService.createItem(new ItemDto(null,
                 "Item2",
                 "Description2",
-                false, itemOwner.getId(), null), null, itemOwner.getId());
+                false, itemOwner.getId(), null), itemOwner.getId());
 
         List<ItemDto> itemsReturned = itemService.searchItems("item2", itemDto.getOwnerId(), 0, 2);
         List<Item> items = entityManager.createQuery("select i from Item i " +
-                        "where i.available = TRUE and (upper(i.name) like upper(concat('%', :text, '%')) " +
-                        "or upper(i.description) like upper(concat('%', :text, '%')))", Item.class)
+                "where i.available = TRUE and (upper(i.name) like upper(concat('%', :text, '%')) " +
+                "or upper(i.description) like upper(concat('%', :text, '%')))", Item.class)
                 .setParameter("text", "item2")
                 .getResultList();
         assertThat(items.size(), equalTo(itemsReturned.size()));
@@ -172,12 +172,12 @@ class ItemServiceImplTest {
         itemDto = itemService.createItem(new ItemDto(null,
                 "Item2",
                 "Description2",
-                true, itemOwner.getId(), null), null, itemOwner.getId());
+                true, itemOwner.getId(), null), itemOwner.getId());
 
         List<ItemDto> itemsReturned = itemService.searchItems("hello", itemDto.getOwnerId(), 0, 2);
         List<Item> items = entityManager.createQuery("select i from Item i " +
-                        "where i.available = TRUE and (upper(i.name) like upper(concat('%', :text, '%')) " +
-                        "or upper(i.description) like upper(concat('%', :text, '%')))", Item.class)
+                "where i.available = TRUE and (upper(i.name) like upper(concat('%', :text, '%')) " +
+                "or upper(i.description) like upper(concat('%', :text, '%')))", Item.class)
                 .setParameter("text", "hello")
                 .getResultList();
         assertThat(items.size(), equalTo(itemsReturned.size()));
@@ -213,34 +213,6 @@ class ItemServiceImplTest {
     }
 
     @Test
-    void getItemsComments() {
-        CommentDto returned = createCommentDto("Comment2", new UserDto(null, "Harry", "booker@mail.ru"));
-
-        List<CommentDto> returnedComments = itemService.getItemsComments(List.of(itemDto.getId()));
-
-        List<Comment> comments = entityManager.createQuery("Select c from Comment c where c.item.id in :itemIds", Comment.class)
-                .setParameter("itemIds", List.of(itemDto.getId()))
-                .getResultList();
-
-        assertThat(comments, Matchers.notNullValue());
-        assertThat(comments.size(), equalTo(returnedComments.size()));
-        assertThat(comments.size(), equalTo(1));
-        assertThat(comments.get(0).getId(), equalTo(returnedComments.get(0).getId()));
-    }
-
-    @Test
-    void getItemsCommentsWithEmptyResult() {
-        List<CommentDto> returnedComments = itemService.getItemsComments(List.of(itemDto.getId()));
-
-        List<Comment> comments = entityManager.createQuery("Select c from Comment c where c.item.id in :itemIds", Comment.class)
-                .setParameter("itemIds", List.of(itemDto.getId()))
-                .getResultList();
-
-        assertThat(comments, empty());
-        assertThat(comments.size(), equalTo(returnedComments.size()));
-    }
-
-    @Test
     void getAllComments() {
         CommentDto returned1 = createCommentDto("Comment", new UserDto(null, "Harry", "booker@mail.ru"));
         CommentDto returned2 = createCommentDto("Comment2", new UserDto(null, "Harry", "booker2@mail.ru"));
@@ -262,7 +234,7 @@ class ItemServiceImplTest {
         ItemDto itemWithRequest = itemService.createItem(new ItemDto(null,
                 "Item",
                 "Description",
-                true, itemOwner.getId(), null), itemRequestDto, itemOwner.getId());
+                true, itemOwner.getId(), null), itemOwner.getId());
 
         List<ItemDto> returnedItems = itemService.getItemsByRequestId(itemRequestDto.getId());
         List<Item> itemsByRequest = entityManager.createQuery("Select i from Item i where i.request.id = :requestId", Item.class)
@@ -295,7 +267,7 @@ class ItemServiceImplTest {
         ItemDto itemWithRequest = itemService.createItem(new ItemDto(null,
                 "Item",
                 "Description",
-                true, itemOwner.getId(), null), itemRequestDto, itemOwner.getId());
+                true, itemOwner.getId(), null), itemOwner.getId());
 
         List<ItemDto> returnedItems = itemService.getItemsByRequests(List.of(itemRequestDto.getId()));
         List<Item> itemsByRequest = entityManager.createQuery("Select i from Item i where i.request.id in :requestIds", Item.class)
