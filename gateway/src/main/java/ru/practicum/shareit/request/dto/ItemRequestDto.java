@@ -5,7 +5,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 
 import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 
 @Data
@@ -13,7 +12,6 @@ import java.time.LocalDateTime;
 public class ItemRequestDto {
     private Integer id;
     @NotEmpty(message = "Request description cannot be empty")
-    @NotNull(message = "Request description cannot be empty")
     private String description;
     private Integer requestorId;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-DD'T'HH:mm:ss")

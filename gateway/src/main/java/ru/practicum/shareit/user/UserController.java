@@ -31,7 +31,7 @@ public class UserController {
     @Validated(Created.class)
     @PostMapping()
     public ResponseEntity<Object> createUser(@RequestBody @Valid UserDto userDto) {
-        log.error("createUser " + userDto);
+        log.info("createUser " + userDto);
         return userClient.createUser(userDto);
     }
 
@@ -39,19 +39,19 @@ public class UserController {
     @PatchMapping("/{userId}")
     public ResponseEntity<Object> updateUser(@RequestBody @Valid UserDto userDto,
                                              @PathVariable long userId) {
-        log.error("updateUser " + userDto + " " + userId);
+        log.info("updateUser " + userDto + " " + userId);
         return userClient.updateUser(userDto, userId);
     }
 
     @GetMapping("/{userId}")
     public ResponseEntity<Object> getUser(@PathVariable long userId) {
-        log.error("getUser " + userId);
+        log.info("getUser " + userId);
         return userClient.getUser(userId);
     }
 
     @DeleteMapping("/{userId}")
     public void deleteUser(@PathVariable long userId) {
-        log.error("deleteUser " + userId);
+        log.info("deleteUser " + userId);
         userClient.deleteUser(userId);
     }
 }
