@@ -7,8 +7,6 @@ import ru.practicum.shareit.booking.dto.BookingCreateDto;
 import ru.practicum.shareit.booking.dto.BookingExtendedDto;
 import ru.practicum.shareit.booking.service.BookingService;
 
-import javax.validation.constraints.Positive;
-import javax.validation.constraints.PositiveOrZero;
 import java.util.List;
 
 /**
@@ -22,21 +20,17 @@ public class BookingController {
 
 
     @GetMapping()
-    public List<BookingExtendedDto> getBookings(@RequestParam(defaultValue = "all") String state,
-                                                @PositiveOrZero
-                                                @RequestParam(name = "from", defaultValue = "0") Integer from,
-                                                @Positive
-                                                @RequestParam(name = "size", defaultValue = "10") Integer size,
+    public List<BookingExtendedDto> getBookings(@RequestParam() String state,
+                                                @RequestParam() Integer from,
+                                                @RequestParam() Integer size,
                                                 @RequestHeader(value = "X-Sharer-User-Id") Integer userId) {
         return bookingService.getBookings(userId, state, from, size);
     }
 
     @GetMapping("/owner")
-    public List<BookingExtendedDto> getOwnerBookings(@RequestParam(defaultValue = "all") String state,
-                                                     @PositiveOrZero
-                                                     @RequestParam(name = "from", defaultValue = "0") Integer from,
-                                                     @Positive
-                                                     @RequestParam(name = "size", defaultValue = "10") Integer size,
+    public List<BookingExtendedDto> getOwnerBookings(@RequestParam() String state,
+                                                     @RequestParam() Integer from,
+                                                     @RequestParam() Integer size,
                                                      @RequestHeader(value = "X-Sharer-User-Id") Integer userId) {
         return bookingService.getOwnersBookings(userId, state, from, size);
     }

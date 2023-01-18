@@ -21,11 +21,4 @@ public interface ItemService {
 
     CommentDto createComment(CommentDto comment, Integer itemId, Integer userId);
 
-    List<CommentDto> getComments(Integer itemId);
-
-    List<CommentDto> getAllComments();
-
-    List<ItemDto> getItemsByRequestId(Integer requestId);
-
-    List<ItemDto> getItemsByRequests(List<Integer> requests);
 }

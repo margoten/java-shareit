@@ -63,7 +63,9 @@ public class ItemServiceImpl implements ItemService {
         if (ownerId == null) {
             throw new ValidationException("Не заполненное поле владельца");
         }
-        Item exist = getItemFromDB(itemDto.getId());
+        Item exist = itemRepository.findById(itemDto.getId()).orElseThrow(() ->
+                new NotFoundException("Товара с id = " + itemDto.getId() + " не существует."));
+
         if (!exist.getOwner().getId().equals(ownerId)) {
             throw new NotFoundException("У товара другой владелец");
         }
@@ -84,7 +86,10 @@ public class ItemServiceImpl implements ItemService {
     public ItemExtendedDto getItem(Integer id, Integer userId) {
         Item item = itemRepository.findById(id).orElseThrow(() ->
                 new NotFoundException("Товара с id = " + id + " не существует."));
-        List<CommentDto> comments = getComments(id);
+        List<CommentDto> comments = commentRepository.findCommentByItem_IdIsOrderByCreated(id)
+                .stream()
+                .map(CommentMapper::toCommentDto)
+                .collect(Collectors.toList());
 
         List<BookingExtendedDto> bookings = bookingRepository.findBookingsByItem_IdAndItem_Owner_IdIsOrderByStart(id, userId)
                 .stream()
@@ -118,7 +123,7 @@ public class ItemServiceImpl implements ItemService {
                 .stream()
                 .map(BookingMapper::toBookingExtendedDto)
                 .collect(Collectors.groupingBy((BookingExtendedDto bookingExtendedDto) -> bookingExtendedDto.getItem().getId()));
-        return itemRepository.findAllByOwner_IdIs(ownerId, pageable)
+        return items
                 .stream()
                 .map(item -> ItemMapper.toItemExtendedDto(item,
                         getLastItemBooking(bookings.get(item.getId())),
@@ -140,7 +145,8 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public CommentDto createComment(CommentDto commentDto, Integer itemId, Integer userId) {
-        Item item = getItemFromDB(itemId);
+        Item item = itemRepository.findById(itemId).orElseThrow(() ->
+                new NotFoundException("Товара с id = " + itemId + " не существует."));;
         User user = userRepository.findById(userId).orElseThrow(() -> {
             throw new NotFoundException("Пользователя с id = " + userId + " не существует.");
         });
@@ -156,43 +162,6 @@ public class ItemServiceImpl implements ItemService {
         comment.setCreated(LocalDateTime.now());
         return CommentMapper.toCommentDto(commentRepository.save(comment));
 
-    }
-
-    @Override
-    public List<CommentDto> getComments(Integer itemId) {
-        return commentRepository.findCommentByItem_IdIsOrderByCreated(itemId)
-                .stream()
-                .map(CommentMapper::toCommentDto)
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    public List<CommentDto> getAllComments() {
-        return commentRepository.findAll()
-                .stream()
-                .map(CommentMapper::toCommentDto)
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    public List<ItemDto> getItemsByRequestId(Integer requestId) {
-        return itemRepository.findAllByRequest_IdIs(requestId)
-                .stream()
-                .map(ItemMapper::toItemDto)
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    public List<ItemDto> getItemsByRequests(List<Integer> requests) {
-        return itemRepository.findAllByRequest_IdIn(requests)
-                .stream()
-                .map(ItemMapper::toItemDto)
-                .collect(Collectors.toList());
-    }
-
-    private Item getItemFromDB(Integer itemId) {
-        return itemRepository.findById(itemId).orElseThrow(() ->
-                new NotFoundException("Товара с id = " + itemId + " не существует."));
     }
 
     private BookingExtendedDto getLastItemBooking(List<BookingExtendedDto> bookings) {

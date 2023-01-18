@@ -46,19 +46,6 @@ class UserServiceUnitTest {
         Assertions.assertEquals(returned.getName(), user.getName());
     }
 
-
-    @Test
-    void createUserWhenUserNullEmail() {
-        ValidationException ex = assertThrows(ValidationException.class, () -> userService.createUser(new UserDto(null, "name", null)));
-        Assertions.assertEquals("Email не может быть пустым.", ex.getMessage());
-    }
-
-    @Test
-    void createUserWhenUserEmptyEmail() {
-        ValidationException ex = assertThrows(ValidationException.class, () -> userService.createUser(new UserDto(null, "name", "ss")));
-        Assertions.assertEquals("Некорректный адрес электронной почты ss.", ex.getMessage());
-    }
-
     @Test
     void createUserWhenEmailOtherUser() {
         Mockito.when(userRepository.save(Mockito.any()))
@@ -125,6 +112,22 @@ class UserServiceUnitTest {
         Mockito.when(userRepository.save(Mockito.any()))
                 .thenThrow(ConflictException.class);
         assertThrows(ConflictException.class, () -> userService.updateUser(userDto, 1));
+    }
+
+    @Test
+    void updateUserWhenUserNull() {
+        UserDto updated = new UserDto(1, "Updated", "updated@mail.ru");
+        ValidationException ex = assertThrows(ValidationException.class, () -> userService.updateUser(updated,null));
+        Assertions.assertEquals("Id пользователя не может быть пустым.", ex.getMessage());
+    }
+
+    @Test
+    void updateUserWhenUserNotFound() {
+        UserDto updated = new UserDto(1, "Updated", "updated@mail.ru");
+        Mockito.when(userRepository.findById(Mockito.any()))
+                .thenThrow(NotFoundException.class);
+
+        assertThrows(NotFoundException.class, () -> userService.updateUser(updated, 99));
     }
 
     @Test

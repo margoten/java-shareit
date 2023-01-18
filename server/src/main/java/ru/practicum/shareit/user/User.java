@@ -6,7 +6,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
-import javax.validation.constraints.Email;
 
 /**
  * TODO Sprint add-controllers.
@@ -23,7 +22,6 @@ public class User {
     private Integer id;
     @Column(name = "name", nullable = false)
     private String name;
-    @Email
     @Column(name = "email", nullable = false, length = 512, unique = true)
     private String email;
 

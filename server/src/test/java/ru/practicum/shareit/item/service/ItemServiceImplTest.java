@@ -1,7 +1,6 @@
 package ru.practicum.shareit.item.service;
 
 import lombok.RequiredArgsConstructor;
-import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -15,7 +14,6 @@ import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemExtendedDto;
 import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.request.dto.ItemRequestDto;
 import ru.practicum.shareit.request.service.ItemRequestService;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.service.UserService;
@@ -142,8 +140,8 @@ class ItemServiceImplTest {
 
         List<ItemDto> itemsReturned = itemService.searchItems("item", itemDto.getOwnerId(), 0, 2);
         List<Item> items = entityManager.createQuery("select i from Item i " +
-                "where i.available = TRUE and (upper(i.name) like upper(concat('%', :text, '%')) " +
-                "or upper(i.description) like upper(concat('%', :text, '%')))", Item.class)
+                        "where i.available = TRUE and (upper(i.name) like upper(concat('%', :text, '%')) " +
+                        "or upper(i.description) like upper(concat('%', :text, '%')))", Item.class)
                 .setParameter("text", "item")
                 .getResultList();
         assertThat(items.size(), equalTo(itemsReturned.size()));
@@ -159,8 +157,8 @@ class ItemServiceImplTest {
 
         List<ItemDto> itemsReturned = itemService.searchItems("item2", itemDto.getOwnerId(), 0, 2);
         List<Item> items = entityManager.createQuery("select i from Item i " +
-                "where i.available = TRUE and (upper(i.name) like upper(concat('%', :text, '%')) " +
-                "or upper(i.description) like upper(concat('%', :text, '%')))", Item.class)
+                        "where i.available = TRUE and (upper(i.name) like upper(concat('%', :text, '%')) " +
+                        "or upper(i.description) like upper(concat('%', :text, '%')))", Item.class)
                 .setParameter("text", "item2")
                 .getResultList();
         assertThat(items.size(), equalTo(itemsReturned.size()));
@@ -176,8 +174,8 @@ class ItemServiceImplTest {
 
         List<ItemDto> itemsReturned = itemService.searchItems("hello", itemDto.getOwnerId(), 0, 2);
         List<Item> items = entityManager.createQuery("select i from Item i " +
-                "where i.available = TRUE and (upper(i.name) like upper(concat('%', :text, '%')) " +
-                "or upper(i.description) like upper(concat('%', :text, '%')))", Item.class)
+                        "where i.available = TRUE and (upper(i.name) like upper(concat('%', :text, '%')) " +
+                        "or upper(i.description) like upper(concat('%', :text, '%')))", Item.class)
                 .setParameter("text", "hello")
                 .getResultList();
         assertThat(items.size(), equalTo(itemsReturned.size()));
@@ -196,86 +194,4 @@ class ItemServiceImplTest {
         assertThat(comment.getAuthor().getName(), equalTo(returned.getAuthorName()));
     }
 
-    @Test
-    void getComments() {
-        CommentDto returned = createCommentDto("Comment", new UserDto(null, "Harry", "booker@mail.ru"));
-
-        List<CommentDto> returnedComments = itemService.getComments(itemDto.getId());
-
-        List<Comment> comments = entityManager.createQuery("Select c from Comment c where c.item.id = :itemId", Comment.class)
-                .setParameter("itemId", itemDto.getId())
-                .getResultList();
-
-        assertThat(comments, Matchers.notNullValue());
-        assertThat(comments.size(), equalTo(returnedComments.size()));
-        assertThat(comments.size(), equalTo(1));
-        assertThat(comments.get(0).getId(), equalTo(returnedComments.get(0).getId()));
-    }
-
-    @Test
-    void getAllComments() {
-        CommentDto returned1 = createCommentDto("Comment", new UserDto(null, "Harry", "booker@mail.ru"));
-        CommentDto returned2 = createCommentDto("Comment2", new UserDto(null, "Harry", "booker2@mail.ru"));
-
-        List<CommentDto> returnedComments = itemService.getAllComments();
-
-        List<Comment> comments = entityManager.createQuery("Select c from Comment c", Comment.class)
-                .getResultList();
-
-        assertThat(comments, Matchers.notNullValue());
-        assertThat(comments.size(), equalTo(returnedComments.size()));
-        assertThat(comments.size(), equalTo(2));
-    }
-
-    @Test
-    void getItemsByRequestId() {
-        UserDto requestor = userService.createUser(new UserDto(null, "Harry", "requestor@mail.ru"));
-        ItemRequestDto itemRequestDto = itemRequestService.createItemRequest(new ItemRequestDto(null, "Hello", requestor.getId(), LocalDateTime.now(), List.of()), requestor.getId());
-        ItemDto itemWithRequest = itemService.createItem(new ItemDto(null,
-                "Item",
-                "Description",
-                true, itemOwner.getId(), null), itemOwner.getId());
-
-        List<ItemDto> returnedItems = itemService.getItemsByRequestId(itemRequestDto.getId());
-        List<Item> itemsByRequest = entityManager.createQuery("Select i from Item i where i.request.id = :requestId", Item.class)
-                .setParameter("requestId", itemRequestDto.getId())
-                .getResultList();
-
-        assertThat(returnedItems, Matchers.notNullValue());
-        assertThat(returnedItems.size(), equalTo(itemsByRequest.size()));
-        assertThat(returnedItems.size(), equalTo(1));
-    }
-
-    @Test
-    void getItemsByRequestIdWithEmptyResult() {
-        UserDto requestor = userService.createUser(new UserDto(null, "Harry", "requestor@mail.ru"));
-        ItemRequestDto itemRequestDto = itemRequestService.createItemRequest(new ItemRequestDto(null, "Hello", requestor.getId(), LocalDateTime.now(), List.of()), requestor.getId());
-
-        List<ItemDto> returnedItems = itemService.getItemsByRequestId(itemRequestDto.getId());
-        List<Item> itemsByRequest = entityManager.createQuery("Select i from Item i where i.request.id = :requestId", Item.class)
-                .setParameter("requestId", itemRequestDto.getId())
-                .getResultList();
-
-        assertThat(returnedItems, empty());
-        assertThat(returnedItems.size(), equalTo(itemsByRequest.size()));
-    }
-
-    @Test
-    void getItemsByRequests() {
-        UserDto requestor = userService.createUser(new UserDto(null, "Harry", "requestor@mail.ru"));
-        ItemRequestDto itemRequestDto = itemRequestService.createItemRequest(new ItemRequestDto(null, "Hello", requestor.getId(), LocalDateTime.now(), List.of()), requestor.getId());
-        ItemDto itemWithRequest = itemService.createItem(new ItemDto(null,
-                "Item",
-                "Description",
-                true, itemOwner.getId(), null), itemOwner.getId());
-
-        List<ItemDto> returnedItems = itemService.getItemsByRequests(List.of(itemRequestDto.getId()));
-        List<Item> itemsByRequest = entityManager.createQuery("Select i from Item i where i.request.id in :requestIds", Item.class)
-                .setParameter("requestIds", List.of(itemRequestDto.getId()))
-                .getResultList();
-
-        assertThat(returnedItems, Matchers.notNullValue());
-        assertThat(returnedItems.size(), equalTo(itemsByRequest.size()));
-        assertThat(returnedItems.size(), equalTo(1));
-    }
 }

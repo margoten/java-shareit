@@ -9,7 +9,6 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageImpl;
 import ru.practicum.shareit.error.NotFoundException;
-import ru.practicum.shareit.error.ValidationException;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
@@ -25,6 +24,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 
 @ExtendWith(MockitoExtension.class)
 class ItemRequestServiceUnitTest {
@@ -63,16 +63,12 @@ class ItemRequestServiceUnitTest {
         Assertions.assertEquals(returned.getRequestorId(), itemRequest.getRequestor().getId());
     }
 
-//    @Test
-//    void createItemWithEmptyDescription() {
-//        NotFoundException ex = assertThrows(NotFoundException.class, () -> itemRequestService.createItemRequest(new ItemRequestDto(1, "", 1, LocalDateTime.now(), List.of()), 1));
-//        Assertions.assertEquals("Not found user with id = 1", ex.getMessage());
-//    }
-
     @Test
     void getItemRequests() {
         createItemRequestDto();
 
+        Mockito.when(itemRepository.findAllByRequest_IdIn(any()))
+                .thenReturn(List.of());
         Mockito.when(itemRequestRepository.findItemRequestByRequestorOrderByCreatedDesc(any()))
                 .thenReturn(List.of(itemRequest));
         List<ItemRequestDto> returned = itemRequestService.getItemRequests(user.getId());
@@ -87,7 +83,7 @@ class ItemRequestServiceUnitTest {
         createItemRequestDto();
 
         Mockito.when(itemRepository.findAllByRequest_IdIn(any()))
-                .thenReturn(List.of(new Item(1, "name", "desr", true, user, ItemRequestMapper.toItemRequest(itemRequestDto))));
+                .thenReturn(List.of(new Item(1, "name", "desr", true, user, itemRequest)));
         Mockito.when(itemRequestRepository.findItemRequestByRequestorOrderByCreatedDesc(any()))
                 .thenReturn(List.of(itemRequest));
         List<ItemRequestDto> returned = itemRequestService.getItemRequests(user.getId());
@@ -109,13 +105,12 @@ class ItemRequestServiceUnitTest {
     @Test
     void getItemRequest() {
         createItemRequestDto();
-
-
-        Mockito.when(itemRepository.findAllByRequest_IdIn(any()))
-                .thenReturn(List.of(new Item(1, "name", "desr", true, user, ItemRequestMapper.toItemRequest(itemRequestDto))));
+        Item item = new Item(2, "name", "desr", true, user, itemRequest);
+        Mockito.when(itemRepository.findAllByRequest_IdIs(any()))
+                .thenReturn(List.of(item));
         Mockito.when(itemRequestRepository.findById(any()))
                 .thenReturn(java.util.Optional.ofNullable(itemRequest));
-        ItemRequestDto returned = itemRequestService.getItemRequest(2, user.getId());
+        ItemRequestDto returned = itemRequestService.getItemRequest(itemRequest.getId(), user.getId());
         Assertions.assertEquals(returned.getDescription(), itemRequest.getDescription());
         Assertions.assertEquals(returned.getId(), itemRequest.getId());
         Assertions.assertEquals(returned.getItems().size(), 1);
@@ -136,11 +131,11 @@ class ItemRequestServiceUnitTest {
     void getAllItemRequests() {
         createItemRequestDto();
 
-        Mockito.when(itemRepository.findAllByRequest_IdIn(any()))
-                .thenReturn(List.of(new Item(1, "name", "desr", true, user, ItemRequestMapper.toItemRequest(itemRequestDto))));
+        Mockito.when(itemRepository.findAllByRequest_IdIn(anyList()))
+                .thenReturn(List.of(new Item(1, "name", "desr", true, user, itemRequest)));
         Mockito.when(itemRequestRepository.findItemRequestByRequestor_IdIsNotOrderByCreatedDesc(any(), any()))
                 .thenReturn(new PageImpl<>(List.of(itemRequest)));
-        List<ItemRequestDto> returned = itemRequestService.getAllItemRequests(0, 2, user.getId());
+        List<ItemRequestDto> returned = itemRequestService.getAllItemRequests(0, 10, user.getId());
         Assertions.assertEquals(returned.size(), 1);
         Assertions.assertEquals(returned.get(0).getId(), itemRequest.getId());
         Assertions.assertEquals(returned.get(0).getItems().size(), 1);

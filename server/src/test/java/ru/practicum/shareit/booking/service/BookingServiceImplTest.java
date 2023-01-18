@@ -91,7 +91,7 @@ class BookingServiceImplTest {
 
     @Test
     void getBookings() {
-        List<BookingExtendedDto> returned = bookingService.getBookings(bookingExtendedDto.getBooker().getId(), null, null, null);
+        List<BookingExtendedDto> returned = bookingService.getBookings(bookingExtendedDto.getBooker().getId(), Booking.TimeBookingState.ALL.name(), 0, 10);
         List<Booking> booking = entityManager.createQuery("Select b from Booking b where b.booker.id = :id", Booking.class)
                 .setParameter("id", bookingExtendedDto.getBooker().getId())
                 .getResultList();
@@ -101,7 +101,7 @@ class BookingServiceImplTest {
 
     @Test
     void getBookingsWithEmptyResult() {
-        List<BookingExtendedDto> returnedApproved = bookingService.getBookings(bookingExtendedDto.getBooker().getId(), Booking.BookingState.APPROVED.name(), null, null);
+        List<BookingExtendedDto> returnedApproved = bookingService.getBookings(bookingExtendedDto.getBooker().getId(), Booking.BookingState.APPROVED.name(), 0, 10);
         List<Booking> bookingApproved = entityManager.createQuery("Select b from Booking b where b.booker.id = :id and b.status = :status", Booking.class)
                 .setParameter("id", bookingExtendedDto.getBooker().getId())
                 .setParameter("status", Booking.BookingState.APPROVED)
@@ -112,7 +112,7 @@ class BookingServiceImplTest {
 
     @Test
     void getOwnersBookings() {
-        List<BookingExtendedDto> returned = bookingService.getOwnersBookings(itemOwner.getId(), null, null, null);
+        List<BookingExtendedDto> returned = bookingService.getOwnersBookings(itemOwner.getId(), Booking.TimeBookingState.ALL.name(), 0, 10);
         List<Booking> booking = entityManager.createQuery("Select b from Booking b inner join b.item i where i.owner.id = :id", Booking.class)
                 .setParameter("id", itemOwner.getId())
                 .getResultList();
@@ -122,7 +122,7 @@ class BookingServiceImplTest {
 
     @Test
     void getOwnerBookingsWithEmptyResult() {
-        List<BookingExtendedDto> returnedApproved = bookingService.getOwnersBookings(itemOwner.getId(), Booking.BookingState.APPROVED.name(), null, null);
+        List<BookingExtendedDto> returnedApproved = bookingService.getOwnersBookings(itemOwner.getId(), Booking.BookingState.APPROVED.name(), 0, 10);
         List<Booking> bookingApproved = entityManager.createQuery("Select b from Booking b inner join b.item i where i.owner.id = :id and b.status = :status", Booking.class)
                 .setParameter("id", itemOwner.getId())
                 .setParameter("status", Booking.BookingState.APPROVED)

@@ -26,7 +26,6 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDto createUser(UserDto userDto) {
-        validationUser(userDto);
         try {
             return UserMapper.toUserDto(userRepository.save(UserMapper.toUser(userDto)));
         } catch (DataIntegrityViolationException e) {
@@ -84,18 +83,5 @@ public class UserServiceImpl implements UserService {
         return userRepository.findById(userId).orElseThrow(() -> {
             throw new NotFoundException("Пользователя с id = " + userId + " не существует.");
         });
-    }
-
-
-    private void validationUser(UserDto user) {
-        if (user.getEmail() == null) {
-            log.warn("Email не может быть пустым.");
-            throw new ValidationException("Email не может быть пустым.");
-        }
-
-        if (user.getEmail().isBlank() || !user.getEmail().contains("@")) {
-            log.warn("Некорректный адрес электронной почты {}.", user.getEmail());
-            throw new ValidationException("Некорректный адрес электронной почты " + user.getEmail() + ".");
-        }
     }
 }

@@ -1,5 +1,6 @@
 package ru.practicum.shareit.booking.service;
 
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -84,7 +85,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public List<BookingExtendedDto> getBookings(Integer bookerId, String state, Integer from, Integer size) {
+    public List<BookingExtendedDto> getBookings(Integer bookerId, @NonNull String state, @NonNull Integer from, @NonNull Integer size) {
         Pageable pageable = PaginationUtils.createPageRequest(from, size, Sort.by("start").descending());
 
         return getBookingsStream(bookerId, state, pageable)
@@ -113,7 +114,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public List<BookingExtendedDto> getOwnersBookings(Integer userId, String state, Integer from, Integer size) {
+    public List<BookingExtendedDto> getOwnersBookings(Integer userId, @NonNull String state, @NonNull Integer from, @NonNull Integer size) {
         Pageable pageable = PaginationUtils.createPageRequest(from, size, Sort.by("start").descending());
 
         return getOwnersBookingsStream(userId, state, pageable)

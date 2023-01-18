@@ -72,7 +72,7 @@ class ItemRequestServiceImplTest {
     @Test
     void createItemRequestWhenUserNotFound() {
         NotFoundException ex = assertThrows(NotFoundException.class, () -> itemRequestService.createItemRequest(itemRequestDto, 99));
-        Assertions.assertEquals("Пользователя с id = " + 99 + " не существует.", ex.getMessage());
+        Assertions.assertEquals("Not found user with id = 99", ex.getMessage());
     }
 
     @Test
@@ -101,7 +101,7 @@ class ItemRequestServiceImplTest {
     void getAllItemRequests() {
         insertItemRequest();
         UserDto userOther = userService.createUser(new UserDto(null, "Other", "mailOther@mail.ru"));
-        List<ItemRequestDto> returned = itemRequestService.getAllItemRequests(null, null, userOther.getId());
+        List<ItemRequestDto> returned = itemRequestService.getAllItemRequests(0, 10, userOther.getId());
 
         List<ItemRequest> itemRequests = entityManager.createQuery("Select i from ItemRequest i where i.requestor.id <> :id order by i.created desc ", ItemRequest.class)
                 .setParameter("id", userOther.getId())
@@ -113,7 +113,7 @@ class ItemRequestServiceImplTest {
     @Test
     void getAllItemRequestsByOwner() {
         insertItemRequest();
-        List<ItemRequestDto> returned = itemRequestService.getAllItemRequests(null, null, user.getId());
+        List<ItemRequestDto> returned = itemRequestService.getAllItemRequests(0, 10, user.getId());
 
         List<ItemRequest> itemRequests = entityManager.createQuery("Select i from ItemRequest i where i.requestor.id <> :id order by i.created desc ", ItemRequest.class)
                 .setParameter("id", user.getId())

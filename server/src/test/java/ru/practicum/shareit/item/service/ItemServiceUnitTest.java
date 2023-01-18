@@ -76,27 +76,6 @@ class ItemServiceUnitTest {
     }
 
     @Test
-    void createItemWithEmptyName() {
-        ValidationException ex = assertThrows(ValidationException.class,
-                () -> itemService.createItem(new ItemDto(null, "", "11", true, 1, 1), 1));
-        Assertions.assertEquals("Название не может быть пустым.", ex.getMessage());
-    }
-
-    @Test
-    void createItemWithEmptyDescription() {
-        ValidationException ex = assertThrows(ValidationException.class,
-                () -> itemService.createItem(new ItemDto(null, "11", "", true, 1, 1), 1));
-        Assertions.assertEquals("Описание не может быть пустым.", ex.getMessage());
-    }
-
-    @Test
-    void createItemWithNulAvailable() {
-        ValidationException ex = assertThrows(ValidationException.class,
-                () -> itemService.createItem(new ItemDto(null, "11", "11", null, 1, 1), 1));
-        Assertions.assertEquals("Поле доступности пустое.", ex.getMessage());
-    }
-
-    @Test
     void updateItem() {
         ItemDto created = createItemDto();
         Item updated = new Item(created.getId(), "newName", itemDto.getDescription(), itemDto.getAvailable(), user, null);
@@ -130,16 +109,16 @@ class ItemServiceUnitTest {
     @Test
     void getItems() {
         createItemDto();
-        Mockito.when(commentRepository.findAll())
+        Mockito.when(itemRepository.findAllByOwner_IdIs(anyInt(), any()))
+                .thenReturn(new PageImpl<>(List.of(item)));
+
+        Mockito.when(commentRepository.findCommentByItemInOrderByCreated(anyList()))
                 .thenReturn(List.of());
 
         Mockito.when(bookingRepository.findBookingsByItemOwner_IdIsAndItemInOrderByStartDesc(anyInt(), any()))
                 .thenReturn(List.of());
 
-        Mockito.when(itemRepository.findAllByOwner_IdIs(anyInt(), any()))
-                .thenReturn(new PageImpl<>(List.of(item)));
-
-        List<ItemExtendedDto> returned = itemService.getItems(user.getId(), null, null);
+        List<ItemExtendedDto> returned = itemService.getItems(user.getId(), 0, 10);
         Assertions.assertEquals(returned.size(), 1);
         Assertions.assertEquals(returned.get(0).getId(), item.getId());
 
@@ -153,7 +132,7 @@ class ItemServiceUnitTest {
         Mockito.when(itemRepository.search(anyString(), any()))
                 .thenReturn(new PageImpl<>(List.of(item)));
 
-        List<ItemDto> returned = itemService.searchItems("item", user.getId(), null, null);
+        List<ItemDto> returned = itemService.searchItems("item", user.getId(), 0, 10);
         Assertions.assertEquals(returned.size(), 1);
         Assertions.assertEquals(returned.get(0).getId(), item.getId());
     }
@@ -165,13 +144,13 @@ class ItemServiceUnitTest {
         Mockito.when(itemRepository.search(anyString(), any()))
                 .thenReturn(Page.empty());
 
-        List<ItemDto> returned = itemService.searchItems("Hello", user.getId(), null, null);
+        List<ItemDto> returned = itemService.searchItems("Hello", user.getId(), 0, 10);
         Assertions.assertEquals(returned.size(), 0);
     }
 
     @Test
     void searchItemsWithEmptyText() {
-        List<ItemDto> returned = itemService.searchItems("", user.getId(), null, null);
+        List<ItemDto> returned = itemService.searchItems("", user.getId(), 0, 10);
         Assertions.assertEquals(returned.size(), 0);
     }
 
@@ -222,53 +201,5 @@ class ItemServiceUnitTest {
         assertThrows(NotFoundException.class,
                 () -> itemService.createComment(commentDto, 99, 2));
 
-    }
-
-    @Test
-    void createCommentWithEmptyText() {
-        CommentDto commentDto = new CommentDto(1, "", itemDto.getId(), user.getName(), LocalDateTime.now());
-        ValidationException ex = assertThrows(ValidationException.class,
-                () -> itemService.createComment(commentDto, itemDto.getId(), 2));
-        Assertions.assertEquals("Текст комментария не может быть пустым", ex.getMessage());
-    }
-
-    @Test
-    void searchItemsWithNullText() {
-        CommentDto commentDto = new CommentDto(1, null, itemDto.getId(), user.getName(), LocalDateTime.now());
-        ValidationException ex = assertThrows(ValidationException.class,
-                () -> itemService.createComment(commentDto, itemDto.getId(), 2));
-        Assertions.assertEquals("Текст комментария не может быть пустым", ex.getMessage());
-    }
-
-    @Test
-    void getComments() {
-        CommentDto commentDto = new CommentDto(1, "text", itemDto.getId(), user.getName(), LocalDateTime.now());
-
-        Comment comment = new Comment(1, commentDto.getText(), item, user, LocalDateTime.now());
-
-
-        Mockito.when(commentRepository.findCommentByItem_IdIsOrderByCreated(anyInt()))
-                .thenReturn(List.of(comment));
-
-        List<CommentDto> returned = itemService.getComments(item.getId());
-        Assertions.assertEquals(returned.size(), 1);
-        Assertions.assertEquals(returned.get(0).getId(), comment.getId());
-
-    }
-
-
-    @Test
-    void getAllComments() {
-        CommentDto commentDto = new CommentDto(1, "text", itemDto.getId(), user.getName(), LocalDateTime.now());
-
-        Comment comment = new Comment(1, commentDto.getText(), item, user, LocalDateTime.now());
-
-
-        Mockito.when(commentRepository.findAll())
-                .thenReturn(List.of(comment));
-
-        List<CommentDto> returned = itemService.getAllComments();
-        Assertions.assertEquals(returned.size(), 1);
-        Assertions.assertEquals(returned.get(0).getId(), comment.getId());
     }
 }
