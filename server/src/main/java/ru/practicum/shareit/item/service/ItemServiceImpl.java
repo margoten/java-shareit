@@ -46,13 +46,13 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public ItemDto createItem(ItemDto itemDto, Integer ownerId) {
         User owner = userRepository.findById(ownerId)
-                .orElseThrow(() -> new NotFoundException("Not found user with id = " + ownerId));
+                .orElseThrow(() -> new NotFoundException("Не найден пользователь с id = " + ownerId));
         Item item = ItemMapper.toItem(itemDto);
         item.setOwner(owner);
         if (itemDto.getRequestId() != null) {
             ItemRequest itemRequest = itemRequestRepository.findById(itemDto.getRequestId())
                     .orElseThrow(() ->
-                            new NotFoundException("Not found item request with id = " + itemDto.getRequestId()));
+                            new NotFoundException("Не найден запрос с id = " + itemDto.getRequestId()));
             item.setRequest(itemRequest);
         }
         return ItemMapper.toItemDto(itemRepository.save(item));

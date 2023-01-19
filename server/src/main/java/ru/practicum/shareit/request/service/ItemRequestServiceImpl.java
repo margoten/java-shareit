@@ -35,7 +35,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     @Override
     public ItemRequestDto createItemRequest(ItemRequestDto itemRequestDto, Integer requestorId) {
         User user = userRepository.findById(requestorId)
-                .orElseThrow(() -> new NotFoundException("Not found user with id = " + requestorId));
+                .orElseThrow(() -> new NotFoundException("Не найден пользователь с id = " + requestorId));
         ItemRequest itemRequest = ItemRequestMapper.toItemRequest(itemRequestDto);
         itemRequest.setCreated(LocalDateTime.now());
         itemRequest.setRequestor(user);
@@ -45,7 +45,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     @Override
     public List<ItemRequestDto> getItemRequests(Integer userId) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("Not found user with id = " + userId));
+                .orElseThrow(() -> new NotFoundException("Не найден пользователь с id = " + userId));
         List<ItemRequest> itemRequests = itemRequestRepository.findItemRequestByRequestorOrderByCreatedDesc(user);
         Map<Integer, List<ItemDto>> items = itemRepository.findAllByRequest_IdIn(itemRequests.stream().map(ItemRequest::getId).collect(Collectors.toList()))
                 .stream()
@@ -60,7 +60,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     @Override
     public ItemRequestDto getItemRequest(int requestId, Integer userId) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("Not found user with id = " + userId));
+                .orElseThrow(() -> new NotFoundException("Не найден пользователь с id = " + userId));
 
         List<ItemDto> items = itemRepository.findAllByRequest_IdIs(requestId)
                 .stream()

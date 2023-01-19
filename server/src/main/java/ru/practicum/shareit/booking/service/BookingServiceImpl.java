@@ -36,7 +36,7 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public BookingExtendedDto createBooking(BookingCreateDto bookingCreateDto, Integer bookerId) {
         Item item = itemRepository.findById(bookingCreateDto.getItemId())
-                .orElseThrow(() -> new NotFoundException("Not found item with id = " + bookingCreateDto.getItemId()));
+                .orElseThrow(() -> new NotFoundException("Не найден товар с id = " + bookingCreateDto.getItemId()));
         if (!item.getAvailable()) {
             throw new ValidationException("Товар с id " + item.getId() + " не доступен до бронирования");
         }
@@ -45,7 +45,7 @@ public class BookingServiceImpl implements BookingService {
             throw new NotFoundException("Товар с id " + item.getId() + " не может быть заброванирован владельцем");
         }
         User booker = userRepository.findById(bookerId)
-                .orElseThrow(() -> new NotFoundException("Not found user with id = " + bookerId));
+                .orElseThrow(() -> new NotFoundException("Не найден пользователь с id = " + bookerId));
 
         List<Booking> bookings = bookingRepository.findBookingsByItem_IdIsAndStatusIsAndEndIsAfter(item.getId(), Booking.BookingState.APPROVED, bookingCreateDto.getStart());
         if (!bookings.isEmpty()) {
@@ -96,7 +96,7 @@ public class BookingServiceImpl implements BookingService {
 
     private Stream<Booking> getBookingsStream(Integer bookerId, String state, Pageable pageable) {
         User booker = userRepository.findById(bookerId)
-                .orElseThrow(() -> new NotFoundException("Not found user with id = " + bookerId));
+                .orElseThrow(() -> new NotFoundException("Не найден пользователь с id = " + bookerId));
         if (state.equals(Booking.TimeBookingState.ALL.name())) {
             return bookingRepository.findBookingsByBookerIsOrderByStartDesc(booker, pageable).stream();
         }
@@ -126,7 +126,7 @@ public class BookingServiceImpl implements BookingService {
 
     private Stream<Booking> getOwnersBookingsStream(Integer userId, String state, Pageable pageable) {
         User owner = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("Not found user with id = " + userId));
+                .orElseThrow(() -> new NotFoundException("Не найден пользователь с id = " + userId));
         if (state.equals(Booking.TimeBookingState.ALL.name())) {
             return bookingRepository.findBookingsByItemOwnerIsOrderByStartDesc(owner, pageable).stream();
         }

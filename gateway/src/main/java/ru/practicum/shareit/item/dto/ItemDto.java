@@ -11,11 +11,11 @@ import javax.validation.constraints.NotNull;
 @AllArgsConstructor
 public class ItemDto {
     private Integer id;
-    @NotBlank(groups = Created.class, message = "Item name cannot be empty")
+    @NotBlank(groups = Created.class, message = "Название товара не может быть пустым")
     private String name;
-    @NotBlank(groups = Created.class, message = "Item description cannot be empty")
+    @NotBlank(groups = Created.class, message = "Описание товара не может быть пустым")
     private String description;
-    @NotNull(groups = Created.class, message = "Item available cannot be empty")
+    @NotNull(groups = Created.class, message = "Не задано состояние")
     private Boolean available;
     private Integer ownerId;
     private Integer requestId;

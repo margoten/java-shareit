@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class ItemRequestDto {
     private Integer id;
-    @NotBlank(message = "Request description cannot be empty")
+    @NotBlank(message = "Описание товара не может быть пустым")
     private String description;
     private Integer requestorId;
     private LocalDateTime created;

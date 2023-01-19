@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 @Data
 public class CommentDto {
     private final Integer id;
-    @NotEmpty(message = "Comment text cannot be empty")
+    @NotEmpty(message = "Текст комментария не может быть пустым")
     private final String text;
     private final Integer itemId;
     private final String authorName;

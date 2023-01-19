@@ -10,12 +10,12 @@ import java.time.LocalDateTime;
 
 @Data
 @AllArgsConstructor
-public class BookItemRequestDto {
+public class BookingRequestDto {
     private Long itemId;
-    @FutureOrPresent(message = "Incorrect the bookings start time")
+    @FutureOrPresent(message = "Некорректная дата начала бронирования")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-DD'T'HH:mm:ss'Z'")
     private LocalDateTime start;
-    @Future(message = "Incorrect the bookings end time")
+    @Future(message = "Некорректная дата окончания бронирования")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-DD'T'HH:mm:ss'Z'")
     private LocalDateTime end;
 }

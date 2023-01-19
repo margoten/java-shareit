@@ -72,7 +72,7 @@ class ItemRequestServiceImplTest {
     @Test
     void createItemRequestWhenUserNotFound() {
         NotFoundException ex = assertThrows(NotFoundException.class, () -> itemRequestService.createItemRequest(itemRequestDto, 99));
-        Assertions.assertEquals("Not found user with id = 99", ex.getMessage());
+        Assertions.assertEquals("Не найден пользователь с id = 99", ex.getMessage());
     }
 
     @Test

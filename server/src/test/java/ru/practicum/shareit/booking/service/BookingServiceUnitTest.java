@@ -92,7 +92,7 @@ class BookingServiceUnitTest {
     void createBookingByItemOwner() {
         bookingCreatedDto.setBooker(booking.getItem().getOwner().getId());
         NotFoundException ex = assertThrows(NotFoundException.class, () -> bookingService.createBooking(bookingCreatedDto, bookingCreatedDto.getBooker()));
-        Assertions.assertEquals("Not found item with id = 1", ex.getMessage());
+        Assertions.assertEquals("Не найден товар с id = 1", ex.getMessage());
     }
 
     @Test
