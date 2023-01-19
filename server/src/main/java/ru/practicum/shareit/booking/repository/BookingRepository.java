@@ -40,7 +40,7 @@ public interface BookingRepository extends JpaRepository<Booking, Integer> {
 
     List<Booking> findBookingsByItem_IdAndItem_Owner_IdIsOrderByStart(Integer itemId, Integer userId);
 
-    List<Booking> findBookingsByItemOwner_IdIsAndItemInOrderByStartDesc(Integer ownerId, List<Item> items);
+    List<Booking> findBookingsByItemInOrderByStartDesc(List<Item> items);
 
 
     //endregion

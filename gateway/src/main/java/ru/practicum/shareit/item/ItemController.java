@@ -73,6 +73,7 @@ public class ItemController {
         itemClient.deleteItem(itemId);
     }
 
+    @Validated
     @PostMapping("{itemId}/comment")
     public ResponseEntity<Object> createItemComment(@RequestBody @Valid CommentDto commentDto,
                                                     @PathVariable long itemId,

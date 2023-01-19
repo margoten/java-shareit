@@ -115,7 +115,7 @@ class ItemServiceUnitTest {
         Mockito.when(commentRepository.findCommentByItemInOrderByCreated(anyList()))
                 .thenReturn(List.of());
 
-        Mockito.when(bookingRepository.findBookingsByItemOwner_IdIsAndItemInOrderByStartDesc(anyInt(), any()))
+        Mockito.when(bookingRepository.findBookingsByItemInOrderByStartDesc(any()))
                 .thenReturn(List.of());
 
         List<ItemExtendedDto> returned = itemService.getItems(user.getId(), 0, 10);

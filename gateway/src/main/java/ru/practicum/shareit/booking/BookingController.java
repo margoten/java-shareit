@@ -43,10 +43,14 @@ public class BookingController {
         return bookingClient.getOwnerBookings(userId, state, from, size);
     }
 
+    @Validated
     @PostMapping
     public ResponseEntity<Object> createBooking(@RequestHeader("X-Sharer-User-Id") long userId,
                                                 @RequestBody @Valid BookItemRequestDto requestDto) {
         log.info("Creating booking {}, userId={}", requestDto, userId);
+        if (requestDto.getStart().isAfter(requestDto.getEnd())) {
+            throw new IllegalArgumentException("Incorrect start or end by booking");
+        }
         return bookingClient.createBooking(userId, requestDto);
     }
 
@@ -59,8 +63,9 @@ public class BookingController {
 
     @PatchMapping("/{bookingId}")
     public ResponseEntity<Object> approveBooking(@PathVariable Integer bookingId,
-                                                 @RequestParam(required = false) boolean approved,
+                                                 @RequestParam(required = false) Boolean approved,
                                                  @RequestHeader(value = "X-Sharer-User-Id") long userId) {
+        log.info("Get booking {}, approved = {}, userId={}", bookingId, approved, userId);
         return bookingClient.approveBooking(bookingId, approved, userId);
     }
 }

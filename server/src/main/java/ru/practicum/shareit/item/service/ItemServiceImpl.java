@@ -95,7 +95,6 @@ public class ItemServiceImpl implements ItemService {
                 .stream()
                 .map(BookingMapper::toBookingExtendedDto)
                 .collect(Collectors.toList());
-        ;
 
         return ItemMapper.toItemExtendedDto(item,
                 getLastItemBooking(bookings),
@@ -119,7 +118,7 @@ public class ItemServiceImpl implements ItemService {
                 .map(CommentMapper::toCommentDto)
                 .collect(Collectors.groupingBy(CommentDto::getItemId));
 
-        Map<Integer, List<BookingExtendedDto>> bookings = bookingRepository.findBookingsByItemOwner_IdIsAndItemInOrderByStartDesc(ownerId, items)
+        Map<Integer, List<BookingExtendedDto>> bookings = bookingRepository.findBookingsByItemInOrderByStartDesc(items)
                 .stream()
                 .map(BookingMapper::toBookingExtendedDto)
                 .collect(Collectors.groupingBy((BookingExtendedDto bookingExtendedDto) -> bookingExtendedDto.getItem().getId()));
@@ -168,7 +167,7 @@ public class ItemServiceImpl implements ItemService {
         return bookings == null
                 ? null
                 : bookings.stream()
-                .filter(booking -> booking.getEnd().isBefore(LocalDateTime.now()))
+                .filter(booking -> !booking.getEnd().isAfter(LocalDateTime.now()))
                 .max(Comparator.comparing(BookingExtendedDto::getEnd)).orElse(null);
     }
 
