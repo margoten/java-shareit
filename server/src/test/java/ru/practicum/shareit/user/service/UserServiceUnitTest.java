@@ -117,7 +117,7 @@ class UserServiceUnitTest {
     @Test
     void updateUserWhenUserNull() {
         UserDto updated = new UserDto(1, "Updated", "updated@mail.ru");
-        ValidationException ex = assertThrows(ValidationException.class, () -> userService.updateUser(updated,null));
+        ValidationException ex = assertThrows(ValidationException.class, () -> userService.updateUser(updated, null));
         Assertions.assertEquals("Id пользователя не может быть пустым.", ex.getMessage());
     }
 
