@@ -13,9 +13,9 @@ import java.time.LocalDateTime;
 public class BookingRequestDto {
     private Long itemId;
     @FutureOrPresent(message = "Некорректная дата начала бронирования")
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-DD'T'HH:mm:ss'Z'")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'")
     private LocalDateTime start;
     @Future(message = "Некорректная дата окончания бронирования")
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-DD'T'HH:mm:ss'Z'")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'")
     private LocalDateTime end;
 }

@@ -9,7 +9,6 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import ru.practicum.shareit.error.ConflictException;
 import ru.practicum.shareit.error.NotFoundException;
-import ru.practicum.shareit.error.ValidationException;
 import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.mapper.UserMapper;
@@ -115,13 +114,6 @@ class UserServiceUnitTest {
     }
 
     @Test
-    void updateUserWhenUserNull() {
-        UserDto updated = new UserDto(1, "Updated", "updated@mail.ru");
-        ValidationException ex = assertThrows(ValidationException.class, () -> userService.updateUser(updated, null));
-        Assertions.assertEquals("Id пользователя не может быть пустым.", ex.getMessage());
-    }
-
-    @Test
     void updateUserWhenUserNotFound() {
         UserDto updated = new UserDto(1, "Updated", "updated@mail.ru");
         Mockito.when(userRepository.findById(Mockito.any()))
@@ -136,18 +128,6 @@ class UserServiceUnitTest {
                 .thenThrow(NotFoundException.class);
 
         assertThrows(NotFoundException.class, () -> userService.getUser(99));
-    }
-
-    @Test
-    void getUserWhenUserNull() {
-        ValidationException ex = assertThrows(ValidationException.class, () -> userService.getUser(null));
-        Assertions.assertEquals("Id пользователя не может быть пустым.", ex.getMessage());
-    }
-
-    @Test
-    void deleteUserWithNullId() {
-        ValidationException ex = assertThrows(ValidationException.class, () -> userService.deleteUser(null));
-        Assertions.assertEquals("Id пользователя не может быть пустым.", ex.getMessage());
     }
 
     @Test

@@ -8,16 +8,14 @@ import ru.practicum.shareit.item.dto.ItemDto;
 import java.time.LocalDateTime;
 import java.util.List;
 
-/**
- * TODO Sprint add-item-requests.
- */
+
 @Data
 @AllArgsConstructor
 public class ItemRequestDto {
     private Integer id;
     private String description;
     private Integer requestorId;
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-DD'T'HH:mm:ss")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime created;
     private List<ItemDto> items;
 }

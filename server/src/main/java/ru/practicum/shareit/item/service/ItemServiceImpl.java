@@ -60,9 +60,6 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public ItemDto updateItem(ItemDto itemDto, Integer ownerId) {
-        if (ownerId == null) {
-            throw new ValidationException("Не заполненное поле владельца");
-        }
         Item exist = itemRepository.findById(itemDto.getId()).orElseThrow(() ->
                 new NotFoundException("Товара с id = " + itemDto.getId() + " не существует."));
 

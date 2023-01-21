@@ -8,7 +8,6 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.error.ConflictException;
 import ru.practicum.shareit.error.NotFoundException;
-import ru.practicum.shareit.error.ValidationException;
 import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.mapper.UserMapper;
@@ -62,9 +61,6 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void deleteUser(Integer userId) {
-        if (userId == null) {
-            throw new ValidationException("Id пользователя не может быть пустым.");
-        }
         userRepository.deleteById(userId);
     }
 
@@ -77,9 +73,6 @@ public class UserServiceImpl implements UserService {
     }
 
     private User getUserFromDB(Integer userId) {
-        if (userId == null) {
-            throw new ValidationException("Id пользователя не может быть пустым.");
-        }
         return userRepository.findById(userId).orElseThrow(() -> {
             throw new NotFoundException("Пользователя с id = " + userId + " не существует.");
         });

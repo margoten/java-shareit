@@ -23,8 +23,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.*;
 
 @ExtendWith(MockitoExtension.class)
 class ItemRequestServiceUnitTest {
@@ -106,6 +105,8 @@ class ItemRequestServiceUnitTest {
     void getItemRequest() {
         createItemRequestDto();
         Item item = new Item(2, "name", "desr", true, user, itemRequest);
+        Mockito.when(userRepository.existsById(anyInt()))
+                .thenReturn(true);
         Mockito.when(itemRepository.findAllByRequest_IdIs(any()))
                 .thenReturn(List.of(item));
         Mockito.when(itemRequestRepository.findById(any()))
@@ -118,8 +119,8 @@ class ItemRequestServiceUnitTest {
 
     @Test
     void getItemRequestNotFound() {
-        Mockito.when(userRepository.findById(Mockito.any()))
-                .thenReturn(java.util.Optional.ofNullable(user));
+        Mockito.when(userRepository.existsById(Mockito.any()))
+                .thenReturn(true);
         Mockito.when(itemRequestRepository.findById(any()))
                 .thenThrow(NotFoundException.class);
         Mockito.when(itemRepository.findAllByRequest_IdIs(any()))

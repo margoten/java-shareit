@@ -90,13 +90,6 @@ class ItemServiceUnitTest {
     }
 
     @Test
-    void updateItemWithOwnerNull() {
-        ValidationException ex = assertThrows(ValidationException.class,
-                () -> itemService.updateItem(itemDto, null));
-        Assertions.assertEquals("Не заполненное поле владельца", ex.getMessage());
-    }
-
-    @Test
     void getItemWithItemNotFound() {
         createItemDto();
         Mockito.when(itemRepository.findById(anyInt()))

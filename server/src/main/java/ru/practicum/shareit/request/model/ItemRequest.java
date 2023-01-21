@@ -9,9 +9,7 @@ import ru.practicum.shareit.user.User;
 import javax.persistence.*;
 import java.time.LocalDateTime;
 
-/**
- * TODO Sprint add-item-requests.
- */
+
 @Entity
 @Table(name = "requests", schema = "public")
 @Data

@@ -11,10 +11,9 @@ import ru.practicum.shareit.user.validation.Created;
 import ru.practicum.shareit.user.validation.Updated;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 
-/**
- * TODO Sprint add-controllers.
- */
+
 @RestController
 @RequestMapping(path = "/users")
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
@@ -38,13 +37,13 @@ public class UserController {
     @Validated(Updated.class)
     @PatchMapping("/{userId}")
     public ResponseEntity<Object> updateUser(@RequestBody @Valid UserDto userDto,
-                                             @PathVariable long userId) {
+                                             @NotNull @PathVariable long userId) {
         log.info("updateUser " + userDto + " " + userId);
         return userClient.updateUser(userDto, userId);
     }
 
     @GetMapping("/{userId}")
-    public ResponseEntity<Object> getUser(@PathVariable long userId) {
+    public ResponseEntity<Object> getUser(@NotNull @PathVariable long userId) {
         log.info("getUser " + userId);
         return userClient.getUser(userId);
     }
